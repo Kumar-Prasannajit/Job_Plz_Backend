@@ -1,15 +1,22 @@
 {
   "name": "job_plz_backend",
   "version": "1.0.0",
-  "description": "job suggestion based on resume",
-  "license": "ISC",
+  "description": "Job suggestion backend based on resume",
   "author": "",
+  "license": "ISC",
   "type": "module",
-  "main": "index.js",
   "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:reset": "prisma migrate reset",
+    "prisma:studio": "prisma studio",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.9.0",
     "bullmq": "^5.81.2",
     "cloudinary": "^2.10.0",
