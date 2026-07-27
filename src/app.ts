@@ -4,6 +4,8 @@ import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
 import healthRouter from "./routes/health.route.js";
+import { notFoundHandler } from "./middlewares/notFound.middleware.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -22,8 +24,19 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(morgan("dev"));
 
-// Middlewares...
-
+/**
+ * Routes
+ */
 app.use("/health", healthRouter);
+
+/**
+ * 404 Middleware
+ */
+app.use(notFoundHandler);
+
+/**
+ * Global Error Middleware
+ */
+app.use(errorHandler);
 
 export default app;

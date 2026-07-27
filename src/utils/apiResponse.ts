@@ -1,12 +1,12 @@
-export class ApiResponse {
+export class ApiResponse<T = unknown> {
     statusCode: number;
-    data: unknown;
+    data: T;
     message: string;
     success: boolean;
 
     constructor(
         statusCode: number,
-        data: unknown,
+        data: T,
         message = "Success"
     ) {
         this.statusCode = statusCode;
