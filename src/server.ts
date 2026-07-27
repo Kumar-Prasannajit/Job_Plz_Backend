@@ -1,10 +1,8 @@
 import app from "./app.js";
-import { connectDB } from "./config/database.js";
-
-const PORT = process.env.PORT || 8000;
+import { connectDB, env } from "./config/index.js";
 
 await connectDB();
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on ${PORT}`);
+app.listen(env.PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${env.PORT}`);
 });

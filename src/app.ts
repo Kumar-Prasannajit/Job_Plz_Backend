@@ -3,6 +3,7 @@ import helmet from "helmet";
 import cors from "cors";
 import compression from "compression";
 import morgan from "morgan";
+import healthRouter from "./routes/health.route.js";
 
 const app = express();
 
@@ -20,5 +21,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(morgan("dev"));
+
+// Middlewares...
+
+app.use("/health", healthRouter);
 
 export default app;
