@@ -10,8 +10,6 @@ export const verifyClerkWebhook = (
     _res: Response,
     next: NextFunction
 ): void => {
-
-     console.log("➡️ Middleware reached");
     const svixId = req.headers["svix-id"];
     const svixTimestamp = req.headers["svix-timestamp"];
     const svixSignature = req.headers["svix-signature"];

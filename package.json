@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@clerk/backend": "^3.13.2",
+    "@clerk/express": "^2.1.47",
     "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.9.0",
     "bullmq": "^5.81.2",

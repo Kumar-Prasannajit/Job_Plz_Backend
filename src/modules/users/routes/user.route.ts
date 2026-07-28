@@ -6,10 +6,6 @@ import { verifyClerkWebhook } from "../../../middlewares/verifyClerkWebhook.midd
 
 const router = Router();
 
-router.post(
-    "/clerk",
-    verifyClerkWebhook,
-    clerkWebhook
-);
+router.post("/clerk", verifyClerkWebhook, clerkWebhook);
 
 export default router;
