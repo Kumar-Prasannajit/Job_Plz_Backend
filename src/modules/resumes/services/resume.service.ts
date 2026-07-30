@@ -58,6 +58,14 @@ class ResumeService {
     const embeddingService = new EmbeddingService();
     const chunks = embeddingService.format(validationResult.data);
 
+    const embeddings = await embeddingService.generateEmbeddings(chunks);
+
+    console.log("Generated embeddings:", embeddings.length);
+
+    console.log("Embedding dimension:", embeddings[0]?.length);
+
+    console.log("First 5 values:", embeddings[0]?.slice(0, 5));
+
     // Save to database
     const savedResume = await resumeRepository.create({
       userId,
