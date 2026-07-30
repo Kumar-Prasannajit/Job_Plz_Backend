@@ -11,7 +11,7 @@ import { resumeRepository } from "../repositories/resume.repository.js";
 import { resumeExtractorService } from "./resumeExtractor.service.js";
 import { resumeParserService } from "./resumeParser.service.js";
 import { resumeValidatorService } from "./resumeValidator.service.js";
-
+import { EmbeddingService } from "../../embeddings/embedding.service.js";
 class ResumeService {
   async uploadResume(
     userId: string,
@@ -53,6 +53,10 @@ class ResumeService {
         resumeValidatorService.formatErrors(validationResult.error),
       );
     }
+
+    // Text FORMATTER
+    const embeddingService = new EmbeddingService();
+    const chunks = embeddingService.format(validationResult.data);
 
     // Save to database
     const savedResume = await resumeRepository.create({
