@@ -1,17 +1,17 @@
 export class ApiError extends Error {
-    statusCode: number;
-    errors: string[];
+  statusCode: number;
+  errors: unknown[];
 
-    constructor(
-        statusCode: number,
-        message: string = "Something went wrong",
-        errors: string[] = []
-    ) {
-        super(message);
+  constructor(
+    statusCode: number,
+    message: string = "Something went wrong",
+    errors: unknown[] = [],
+  ) {
+    super(message);
 
-        this.statusCode = statusCode;
-        this.errors = errors;
+    this.statusCode = statusCode;
+    this.errors = errors;
 
-        Error.captureStackTrace(this, this.constructor);
-    }
+    Error.captureStackTrace(this, this.constructor);
+  }
 }

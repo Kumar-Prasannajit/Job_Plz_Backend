@@ -13,11 +13,13 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset",
     "prisma:studio": "prisma studio",
+    "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@clerk/backend": "^3.13.2",
     "@clerk/express": "^2.1.47",
+    "@google/genai": "^2.13.0",
     "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.9.0",
     "bullmq": "^5.81.2",
@@ -28,8 +30,10 @@
     "express": "^5.2.1",
     "helmet": "^8.3.0",
     "ioredis": "^5.11.1",
+    "libphonenumber-js": "^1.13.9",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
+    "pdf-parse": "^1.1.1",
     "pg": "^8.22.0",
     "prisma": "^7.9.0",
     "svix": "^1.99.1",
@@ -42,6 +46,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.1",
+    "@types/pdf-parse": "^1.1.5",
     "nodemon": "^3.1.14",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2"

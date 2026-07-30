@@ -7,6 +7,10 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
+  if (process.env.NODE_ENV !== "test") {
+    console.error(err);
+  }
+
   if (err instanceof ApiError) {
     res.status(err.statusCode).json({
       success: false,
@@ -17,10 +21,6 @@ export const errorHandler = (
     });
 
     return;
-  }
-
-  if (process.env.NODE_ENV !== "test") {
-    console.error(err);
   }
 
   res.status(500).json({
