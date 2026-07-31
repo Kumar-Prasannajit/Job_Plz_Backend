@@ -14,17 +14,17 @@ export interface CreateResumeInput {
 
 class ResumeRepository {
   async create(data: CreateResumeInput): Promise<Resume> {
-  return prisma.resume.create({
-    data: {
-      userId: data.userId,
-      originalFileName: data.originalFileName,
-      cloudinaryUrl: data.cloudinaryUrl,
-      cloudinaryId: data.cloudinaryId,
-      parsedData: data.parsedData,
-      parserVersion: data.parserVersion,
-    },
-  });
-}
+    return prisma.resume.create({
+      data: {
+        userId: data.userId,
+        originalFileName: data.originalFileName,
+        cloudinaryUrl: data.cloudinaryUrl,
+        cloudinaryId: data.cloudinaryId,
+        parsedData: data.parsedData,
+        parserVersion: data.parserVersion,
+      },
+    });
+  }
 
   async findByUserId(userId: string): Promise<Resume[]> {
     return prisma.resume.findMany({
@@ -33,6 +33,41 @@ class ResumeRepository {
       },
       orderBy: {
         createdAt: "desc",
+      },
+    });
+  }
+
+  async findById(resumeId: string): Promise<Resume | null> {
+    return prisma.resume.findUnique({
+      where: {
+        id: resumeId,
+      },
+    });
+  }
+
+  async findByIdAndUserId(
+  resumeId: string,
+  userId: string,
+): Promise<Resume | null> {
+  return prisma.resume.findFirst({
+    where: {
+      id: resumeId,
+      userId,
+    },
+  });
+}
+
+  async updateParsedData(
+    resumeId: string,
+    parsedData: CanonicalResume,
+  ): Promise<Resume> {
+    return prisma.resume.update({
+      where: {
+        id: resumeId,
+      },
+      data: {
+        parsedData,
+        parserVersion: parsedData.metadata.parserVersion,
       },
     });
   }
