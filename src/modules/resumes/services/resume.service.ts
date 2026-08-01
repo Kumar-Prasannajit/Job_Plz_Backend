@@ -11,6 +11,8 @@ import { resumeRepository } from "../repositories/resume.repository.js";
 import { resumeExtractorService } from "./resumeExtractor.service.js";
 import { resumeParserService } from "./resumeParser.service.js";
 import { resumeValidatorService } from "./resumeValidator.service.js";
+import { embeddingRepository } from "../../embeddings/embedding.repository.js";
+
 import type {
   UploadResumeResponse,
   UpdateResumeRequest,
@@ -18,7 +20,7 @@ import type {
   FinalizeResumeRequest,
   FinalizeResumeResponse,
 } from "../types/resume.types.js";
-import { EmbeddingService } from "../../embeddings/embedding.service.js";
+import { embeddingService } from "../../embeddings/embedding.service.js";
 class ResumeService {
   async uploadResume(
     userId: string,
@@ -139,16 +141,27 @@ class ResumeService {
       );
     }
 
-    const embeddingService = new EmbeddingService();
-
     const chunks = embeddingService.format(validationResult.data);
+
+    const duplicateIndexes = chunks
+      .map((c) => c.chunkIndex)
+      .filter((index, i, arr) => arr.indexOf(index) !== i);
+
+    console.log("Duplicate indexes:", duplicateIndexes);
+
+    console.table(
+      chunks.map((c) => ({
+        index: c.chunkIndex,
+        type: c.chunkType,
+      })),
+    );
 
     const embeddings = await embeddingService.generateEmbeddings(chunks);
 
+    await embeddingRepository.replaceEmbeddings(resume.id, chunks, embeddings);
+
     console.log("Generated embeddings:", embeddings.length);
-
     console.log("Embedding dimension:", embeddings[0]?.length);
-
     console.log("First 5 values:", embeddings[0]?.slice(0, 5));
 
     return {

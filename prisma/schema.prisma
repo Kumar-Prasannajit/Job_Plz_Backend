@@ -46,7 +46,7 @@ model Resume {
 }
 
 model ResumeEmbedding {
-  id       String @id @default(cuid())
+  id String @id @default(cuid())
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -55,6 +55,9 @@ model ResumeEmbedding {
   chunkIndex   Int
   chunkContent String
 
+  // pgvector column (3072 dimensions for Gemini embeddings)
+  embedding Unsupported("vector(3072)")
+
   metadata Json?
 
   createdAt DateTime @default(now())
@@ -62,6 +65,7 @@ model ResumeEmbedding {
 
   @@index([resumeId])
   @@index([chunkType])
+  @@unique([resumeId, chunkIndex])
 
   @@map("resume_embeddings")
 }

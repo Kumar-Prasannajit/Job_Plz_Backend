@@ -19,3 +19,5 @@ export class EmbeddingService {
     return this.provider.generateEmbeddings(chunks);
   }
 }
+
+export const embeddingService = new EmbeddingService();

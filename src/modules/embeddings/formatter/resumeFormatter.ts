@@ -15,7 +15,7 @@ import {
 export function formatResume(
   resume: CanonicalResume,
 ): ResumeChunk[] {
-  return [
+  const chunks = [
     ...formatSummary(resume),
     ...formatSkills(resume),
     ...formatExperience(resume),
@@ -25,4 +25,9 @@ export function formatResume(
     ...formatAchievements(resume),
     ...formatLanguages(resume),
   ];
+
+  return chunks.map((chunk, index) => ({
+    ...chunk,
+    chunkIndex: index,
+  }));
 }
