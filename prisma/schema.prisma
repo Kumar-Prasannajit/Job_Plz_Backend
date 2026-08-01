@@ -70,6 +70,61 @@ model ResumeEmbedding {
   @@map("resume_embeddings")
 }
 
+model RawJob {
+  id String @id @default(cuid())
+
+  // Original job URL
+  jobUrl String @unique
+
+  // Original platform information
+  platform      String?
+  platformJobId String?
+
+  // Hiring company
+  companyName    String
+  companyWebsite String?
+  companyLogoUrl String?
+
+  // Job title
+  jobTitle String
+
+  // Original scraped content
+  rawHtml String?
+  rawText String
+  rawJson Json?
+
+  // Raw location exactly as scraped
+  location String?
+
+  // Processing status
+  status RawJobStatus @default(PENDING)
+
+  parserVersion String?
+
+  processedAt DateTime?
+
+  failureReason String?
+
+  // Duplicate detection
+  contentHash String @unique
+
+  // Additional scraper metadata
+  metadata Json?
+
+  // When scraper found the job
+  scrapedAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyName])
+  @@index([jobTitle])
+  @@index([status])
+  @@index([scrapedAt])
+
+  @@map("raw_jobs")
+}
+
 enum ChunkType {
   SUMMARY
   SKILLS
@@ -79,4 +134,11 @@ enum ChunkType {
   CERTIFICATION
   ACHIEVEMENT
   LANGUAGE
+}
+
+enum RawJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
