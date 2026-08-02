@@ -1,14 +1,12 @@
 import type { Personal } from "../schemas/canonicalResume.schema.js";
 
-import { normalizeEmail } from "../normalizers/utils/email.utils.js";
-import { deepRemoveNullish } from "../normalizers/utils/object.utils.js";
-import { normalizePhone } from "../normalizers/utils/phone.utils.js";
-import { normalizeString } from "../normalizers/utils/string.utils.js";
-import { normalizeUrl } from "../normalizers/utils/url.utils.js";
+import { normalizeEmail } from "./utils/email.utils.js";
+import { deepRemoveNullish } from "./utils/object.utils.js";
+import { normalizePhone } from "./utils/phone.utils.js";
+import { normalizeString } from "./utils/string.utils.js";
+import { normalizeUrl } from "./utils/url.utils.js";
 
-export function normalizePersonal(
-  personal: Personal,
-): Personal {
+export function normalizePersonal(personal: Personal): Personal {
   return deepRemoveNullish({
     fullName: normalizeString(personal.fullName),
 

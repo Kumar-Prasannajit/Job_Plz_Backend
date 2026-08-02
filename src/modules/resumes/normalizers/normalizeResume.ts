@@ -1,10 +1,7 @@
 import type { CanonicalResume } from "../schemas/canonicalResume.schema.js";
 
-import { deepRemoveNullish } from "../normalizers/utils/object.utils.js";
-import {
-  normalizeParagraph,
-  normalizeString,
-} from "../normalizers/utils/string.utils.js";
+import { deepRemoveNullish } from "./utils/object.utils.js";
+import { normalizeParagraph, normalizeString } from "./utils/string.utils.js";
 
 import { normalizeAchievement } from "./normalizeAchievement.js";
 import { normalizeCertification } from "./normalizeCertification.js";
@@ -14,54 +11,29 @@ import { normalizePersonal } from "./normalizePersonal.js";
 import { normalizeProjects } from "./normalizeProjects.js";
 import { normalizeSkills } from "./normalizeSkills.js";
 
-export function normalizeResume(
-  resume: CanonicalResume,
-): CanonicalResume {
+export function normalizeResume(resume: CanonicalResume): CanonicalResume {
   return deepRemoveNullish({
-    personal: normalizePersonal(
-      resume.personal,
-    ),
+    personal: normalizePersonal(resume.personal),
 
-    summary: normalizeParagraph(
-      resume.summary,
-    ),
+    summary: normalizeParagraph(resume.summary),
 
-    skills: normalizeSkills(
-      resume.skills,
-    ),
+    skills: normalizeSkills(resume.skills),
 
-    experience: normalizeExperience(
-      resume.experience,
-    ),
+    experience: normalizeExperience(resume.experience),
 
-    education: normalizeEducation(
-      resume.education,
-    ),
+    education: normalizeEducation(resume.education),
 
-    projects: normalizeProjects(
-      resume.projects,
-    ),
+    projects: normalizeProjects(resume.projects),
 
-    certifications:
-      normalizeCertification(
-        resume.certifications,
-      ),
+    certifications: normalizeCertification(resume.certifications),
 
-    achievements:
-      normalizeAchievement(
-        resume.achievements,
-      ),
+    achievements: normalizeAchievement(resume.achievements),
 
-    languages: resume.languages.map(
-      (language) => ({
-        language: normalizeString(
-          language.language,
-        ),
+    languages: resume.languages.map((language) => ({
+      language: normalizeString(language.language),
 
-        proficiency:
-          language.proficiency,
-      }),
-    ),
+      proficiency: language.proficiency,
+    })),
 
     metadata: resume.metadata,
   }) as CanonicalResume;

@@ -1,73 +1,43 @@
 import type { Project } from "../schemas/canonicalResume.schema.js";
 
-import { cleanStringArray } from "../normalizers/utils/array.utils.js";
-import { normalizeDate } from "../normalizers/utils/date.utils.js";
-import { deepRemoveNullish } from "../normalizers/utils/object.utils.js";
-import { normalizeString } from "../normalizers/utils/string.utils.js";
-import { normalizeTechnologyArray } from "../normalizers/utils/technology.utils.js";
-import { normalizeUrl } from "../normalizers/utils/url.utils.js";
+import { cleanStringArray } from "./utils/array.utils.js";
+import { normalizeDate } from "./utils/date.utils.js";
+import { deepRemoveNullish } from "./utils/object.utils.js";
+import { normalizeString } from "./utils/string.utils.js";
+import { normalizeTechnologyArray } from "./utils/technology.utils.js";
+import { normalizeUrl } from "./utils/url.utils.js";
 
-export function normalizeProjects(
-  projects: Project[],
-): Project[] {
-  return projects.map((project) =>
-    deepRemoveNullish({
-      title: normalizeString(
-        project.title,
-      ),
+export function normalizeProjects(projects: Project[]): Project[] {
+  return projects.map(
+    (project) =>
+      deepRemoveNullish({
+        title: normalizeString(project.title),
 
-      description: normalizeString(
-        project.description,
-      ),
+        description: normalizeString(project.description),
 
-      role: normalizeString(
-        project.role,
-      ),
+        role: normalizeString(project.role),
 
-      organization: normalizeString(
-        project.organization,
-      ),
+        organization: normalizeString(project.organization),
 
-      startDate: normalizeDate(
-        project.startDate,
-      ),
+        startDate: normalizeDate(project.startDate),
 
-      endDate: normalizeDate(
-        project.endDate,
-      ),
+        endDate: normalizeDate(project.endDate),
 
-      isOngoing: project.isOngoing,
+        isOngoing: project.isOngoing,
 
-      technologies:
-        normalizeTechnologyArray(
-          project.technologies,
-        ),
+        technologies: normalizeTechnologyArray(project.technologies),
 
-      domain: cleanStringArray(
-        project.domain,
-      ),
+        domain: cleanStringArray(project.domain),
 
-      responsibilities:
-        cleanStringArray(
-          project.responsibilities,
-        ),
+        responsibilities: cleanStringArray(project.responsibilities),
 
-      achievements:
-        cleanStringArray(
-          project.achievements,
-        ),
+        achievements: cleanStringArray(project.achievements),
 
-      githubUrl: normalizeUrl(
-        project.githubUrl,
-      ),
+        githubUrl: normalizeUrl(project.githubUrl),
 
-      liveUrl: normalizeUrl(
-        project.liveUrl,
-      ),
+        liveUrl: normalizeUrl(project.liveUrl),
 
-      demoUrl: normalizeUrl(
-        project.demoUrl,
-      ),
-    }) as Project,
+        demoUrl: normalizeUrl(project.demoUrl),
+      }) as Project,
   );
 }
