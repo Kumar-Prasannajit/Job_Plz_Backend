@@ -1,7 +1,8 @@
 import type { ScraperProvider } from "../interfaces/scraperProvider.interface.js";
 import type { RawJob } from "../types/rawJob.types.js";
-
 class GoogleProvider implements ScraperProvider {
+  readonly id = "google";
+
   readonly name = "Google Careers";
 
   async scrape(): Promise<RawJob[]> {
@@ -46,7 +47,7 @@ Responsibilities
 Perform quantitative analysis.
 Communicate findings to executives.
 Build business strategies.
-        `.trim(),
+      `.trim(),
 
         location: "San Bruno, CA, USA",
 

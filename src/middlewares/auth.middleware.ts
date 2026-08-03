@@ -16,6 +16,9 @@ export const authenticate = async (
             return next(new ApiError(401, "Unauthorized"));
         }
 
+        console.log("Clerk Auth:", auth);
+console.log("Clerk User ID:", auth.userId);
+
         const user = await userRepository.findByClerkId(auth.userId);
 
         if (!user) {

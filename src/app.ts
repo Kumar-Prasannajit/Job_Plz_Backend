@@ -9,6 +9,7 @@ import { env } from "./config/env.js";
 import healthRouter from "./routes/health.route.js";
 import userRouter from "./modules/users/routes/user.route.js";
 import resumeRouter from "./modules/resumes/routes/resume.route.js";
+import scraperRoutes from "./modules/scraper/routes/scraper.routes.js";
 
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -56,6 +57,8 @@ app.use("/health", healthRouter);
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/resumes", resumeRouter);
+app.use("/api/v1/scrapers", scraperRoutes);
+
 
 /**
  * 404 Middleware
