@@ -2,7 +2,7 @@ import {
   TECHNOLOGY_ALIASES,
   type TechnologyAliasKey,
   type TechnologyCanonicalName,
-} from "../../constants/technology-aliases.js";
+} from "../../../resumes/constants/technology-aliases.js";
 
 import { normalizeString, isBlank } from "./string.utils.js";
 

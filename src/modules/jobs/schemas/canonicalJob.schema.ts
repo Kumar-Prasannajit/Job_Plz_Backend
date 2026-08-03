@@ -142,11 +142,14 @@ export const CompensationSchema = z.object({
 
   maximumSalary: z.number().optional(),
 
-  salaryPeriod: z.enum([
+  salaryPeriod: z
+  .enum([
     "Hourly",
     "Monthly",
     "Yearly",
-  ]).optional(),
+  ])
+  .nullable()
+  .optional(),
 
   bonus: z.boolean().default(false),
 

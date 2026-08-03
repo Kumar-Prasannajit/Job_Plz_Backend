@@ -28,6 +28,10 @@ GENERAL RULES
 - Preserve technologies exactly.
 - Preserve certification names exactly.
 - Preserve degree names exactly.
+- Never return an empty string ("") for enum fields.
+- Enum fields must always contain one of the allowed values.
+- If the correct enum value cannot be determined, use the documented fallback value.
+- Never change the JSON structure shown in the example.
 
 ===============================================================================
 JOB
@@ -42,40 +46,6 @@ Extract:
 - jobLevel
 - jobFunction
 - summary
-
-Employment Type must be one of:
-
-- Full-time
-- Part-time
-- Internship
-- Contract
-- Freelance
-- Temporary
-- Apprenticeship
-- Volunteer
-- Self-employed
-- Other
-
-Work Mode must be one of:
-
-- On-site
-- Hybrid
-- Remote
-- Unknown
-
-Job Level must be one of:
-
-- Intern
-- Entry
-- Associate
-- Mid
-- Senior
-- Lead
-- Manager
-- Director
-- VP
-- Executive
-- Other
 
 ===============================================================================
 COMPANY
@@ -255,20 +225,29 @@ equity
 
 Salary Period:
 
-Hourly
+Must be exactly one of:
 
-Monthly
+- Hourly
+- Monthly
+- Yearly
 
-Yearly
+If salary information is unavailable:
 
-If bonus/equity is mentioned:
+salaryPeriod = null
 
-true
+Never return an empty string.
 
-otherwise:
+bonus:
 
-false
+true only if explicitly mentioned.
 
+Otherwise false.
+
+equity:
+
+true only if explicitly mentioned.
+
+Otherwise false.
 ===============================================================================
 BENEFITS
 ===============================================================================
@@ -312,4 +291,160 @@ No markdown.
 No explanations.
 
 No comments.
+
+employmentType:
+Must ALWAYS be exactly one of:
+
+- Full-time
+- Part-time
+- Internship
+- Contract
+- Freelance
+- Temporary
+- Apprenticeship
+- Volunteer
+- Self-employed
+- Other
+
+If unknown use:
+"Other"
+
+------------------------------------------------
+
+workMode:
+Must ALWAYS be exactly one of:
+
+- On-site
+- Hybrid
+- Remote
+- Unknown
+
+------------------------------------------------
+
+jobLevel:
+Must ALWAYS be exactly one of:
+
+- Intern
+- Entry
+- Associate
+- Mid
+- Senior
+- Lead
+- Manager
+- Director
+- VP
+- Executive
+- Other
+
+------------------------------------------------
+
+salaryPeriod:
+
+If salary is unavailable,
+DO NOT return an empty string.
+
+Instead return:
+
+null
+
+Otherwise choose exactly one of:
+
+- Hourly
+- Monthly
+- Yearly
+
+------------------------------------------------
+
+Benefits MUST be an object.
+
+Correct:
+
+"benefits": {
+    "benefits": []
+}
+
+Incorrect:
+
+"benefits": []
+
+Never return an array directly.
+
+===============================================================================
+EXAMPLE JSON
+===============================================================================
+
+{
+  "job": {
+    "title": "Software Engineer",
+    "department": "",
+    "employmentType": "Full-time",
+    "workMode": "Hybrid",
+    "jobLevel": "Mid",
+    "jobFunction": "Software Engineering",
+    "summary": "..."
+  },
+  "company": {
+    "name": "Example Inc.",
+    "website": "",
+    "industry": "",
+    "size": "",
+    "description": ""
+  },
+  "location": {
+    "city": "",
+    "state": "",
+    "country": "",
+    "relocation": false,
+    "visaSponsorship": false
+  },
+  "requirements": {
+    "minimumEducation": "",
+    "preferredEducation": "",
+    "minimumExperienceYears": 0,
+    "preferredExperienceYears": 0,
+    "requiredExperience": [],
+    "preferredExperience": [],
+    "certifications": [],
+    "languages": [],
+    "domainKnowledge": []
+  },
+  "skills": {
+    "languages": [],
+    "frontend": [],
+    "backend": [],
+    "database": [],
+    "cloud": [],
+    "devops": [],
+    "testing": [],
+    "ai": [],
+    "operatingSystems": [],
+    "mobile": [],
+    "tools": [],
+    "softSkills": [],
+    "miscellaneous": []
+  },
+  "responsibilities": {
+    "primary": [],
+    "secondary": [],
+    "leadership": [],
+    "communication": [],
+    "other": []
+  },
+  "compensation": {
+    "currency": "",
+    "minimumSalary": 0,
+    "maximumSalary": 0,
+    "salaryPeriod": null,
+    "bonus": false,
+    "equity": false
+  },
+  "benefits": {
+    "benefits": []
+  },
+  "metadata": {
+    "parserVersion": "${CANONICAL_JOB_SCHEMA_VERSION}",
+    "processedAt": "2026-01-01T00:00:00Z",
+    "confidence": 0.95
+  }
+}
 `;

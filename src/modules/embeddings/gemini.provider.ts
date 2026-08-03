@@ -36,4 +36,24 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
       }) ?? []
     );
   }
+
+  async generateEmbedding(
+    content: string,
+  ): Promise<number[]> {
+    const response = await this.client.models.embedContent({
+      model: "gemini-embedding-001",
+      contents: [content],
+    });
+
+    const embedding = response.embeddings?.[0];
+
+    if (!embedding?.values) {
+      throw new Error("Gemini returned an empty embedding.");
+    }
+
+    return embedding.values;
+  }
 }
+
+export const geminiEmbeddingProvider =
+  new GeminiEmbeddingProvider();

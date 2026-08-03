@@ -55,7 +55,6 @@ model ResumeEmbedding {
   chunkIndex   Int
   chunkContent String
 
-  // pgvector column (3072 dimensions for Gemini embeddings)
   embedding Unsupported("vector(3072)")
 
   metadata Json?
@@ -63,40 +62,32 @@ model ResumeEmbedding {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([resumeId, chunkIndex])
   @@index([resumeId])
   @@index([chunkType])
-  @@unique([resumeId, chunkIndex])
-
   @@map("resume_embeddings")
 }
 
 model RawJob {
   id String @id @default(cuid())
 
-  // Original job URL
   jobUrl String @unique
 
-  // Original platform information
   platform      String?
   platformJobId String?
 
-  // Hiring company
   companyName    String
   companyWebsite String?
   companyLogoUrl String?
 
-  // Job title
   jobTitle String
 
-  // Original scraped content
   rawHtml String?
   rawText String
   rawJson Json?
 
-  // Raw location exactly as scraped
   location String?
 
-  // Processing status
   status RawJobStatus @default(PENDING)
 
   parserVersion String?
@@ -105,24 +96,68 @@ model RawJob {
 
   failureReason String?
 
-  // Duplicate detection
   contentHash String @unique
 
-  // Additional scraper metadata
   metadata Json?
 
-  // When scraper found the job
   scrapedAt DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  job Job?
+
   @@index([companyName])
   @@index([jobTitle])
   @@index([status])
   @@index([scrapedAt])
-
   @@map("raw_jobs")
+}
+
+model Job {
+  id String @id @default(cuid())
+
+  rawJobId String @unique
+
+  rawJob RawJob @relation(fields: [rawJobId], references: [id], onDelete: Cascade)
+
+  canonicalData Json
+
+  schemaVersion String
+
+  embeddings JobEmbedding[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schemaVersion])
+  @@map("jobs")
+}
+
+model JobEmbedding {
+  id String @id @default(cuid())
+
+  jobId String
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  chunkType JobChunkType
+
+  chunkIndex Int
+
+  chunkContent String
+
+  embedding Unsupported("vector(3072)")
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, chunkIndex])
+  @@index([jobId])
+  @@index([chunkType])
+  @@map("job_embeddings")
 }
 
 enum ChunkType {
@@ -134,6 +169,13 @@ enum ChunkType {
   CERTIFICATION
   ACHIEVEMENT
   LANGUAGE
+}
+
+enum JobChunkType {
+  JOB_SUMMARY
+  REQUIREMENTS
+  SKILLS
+  RESPONSIBILITIES
 }
 
 enum RawJobStatus {

@@ -14,7 +14,8 @@
     "prisma:reset": "prisma migrate reset",
     "prisma:studio": "prisma studio",
     "typecheck": "tsc --noEmit",
-    "test:scraper": "tsx src/scripts/test-scraper.ts"
+    "test:scraper": "tsx src/scripts/test-scraper.ts",
+    "test:job": "tsx src/scripts/test-job-pipeline.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.13.2",

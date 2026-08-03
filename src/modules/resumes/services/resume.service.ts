@@ -147,8 +147,6 @@ class ResumeService {
       .map((c) => c.chunkIndex)
       .filter((index, i, arr) => arr.indexOf(index) !== i);
 
-    console.log("Duplicate indexes:", duplicateIndexes);
-
     console.table(
       chunks.map((c) => ({
         index: c.chunkIndex,
