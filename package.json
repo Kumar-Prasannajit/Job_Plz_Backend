@@ -15,7 +15,9 @@
     "prisma:studio": "prisma studio",
     "typecheck": "tsc --noEmit",
     "test:scraper": "tsx src/scripts/test-scraper.ts",
-    "test:job": "tsx src/scripts/test-job-pipeline.ts"
+    "test:job": "tsx src/scripts/test-job-pipeline.ts",
+    "test:browser": "tsx src/scripts/test-browser.ts",
+    "test:google": "tsx src/scripts/test-google-provider.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.13.2",
@@ -37,6 +39,7 @@
     "multer": "^2.2.0",
     "pdf-parse": "^1.1.1",
     "pg": "^8.22.0",
+    "playwright": "^1.62.1",
     "prisma": "^7.9.0",
     "svix": "^1.99.1",
     "zod": "^4.4.3"
