@@ -18,7 +18,9 @@ class ScraperService {
 
     const persistence = await rawJobRepository.createMany(jobs);
 
-    console.log(`💾 Inserted ${persistence.inserted.length} new RawJob(s).`);
+    console.log(
+      `💾 Inserted ${persistence.inserted.length} new RawJob(s), skipped ${persistence.duplicates} duplicate(s).`,
+    );
 
     let processed = 0;
     let processingFailed = 0;
@@ -64,7 +66,15 @@ class ScraperService {
     console.log("\n========================================");
     console.log("📊 Scraper Summary");
     console.log("========================================");
-    console.table(result);
+    console.table({
+      ...result,
+
+      startedAt: result.startedAt.toISOString(),
+
+      completedAt: result.completedAt.toISOString(),
+
+      durationMs: `${result.durationMs} ms`,
+    });
     console.log("========================================\n");
 
     return result;
