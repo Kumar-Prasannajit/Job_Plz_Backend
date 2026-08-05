@@ -2,7 +2,7 @@ import type { ScraperProvider } from "../interfaces/scraperProvider.interface.js
 import type { ScraperRunResult } from "../types/scraper.types.js";
 
 import { rawJobRepository } from "../repositories/rawJob.repository.js";
-import { jobService } from "../../jobs/services/job.service.js";
+import { jobProcessingProducer } from "../../../queues/job-processing.producer.js";
 
 class ScraperService {
   async scrape(provider: ScraperProvider): Promise<ScraperRunResult> {
@@ -21,21 +21,24 @@ class ScraperService {
     console.log(
       `💾 Inserted ${persistence.inserted.length} new RawJob(s), skipped ${persistence.duplicates} duplicate(s).`,
     );
+    console.log("📨 Queueing newly inserted jobs...");
 
     let processed = 0;
     let processingFailed = 0;
 
     for (const rawJob of persistence.inserted) {
       try {
-        console.log(`🔄 Processing: ${rawJob.jobTitle}`);
+        console.log(`📨 Queueing: ${rawJob.jobTitle}`);
 
-        await jobService.process(rawJob);
+        await jobProcessingProducer.enqueue(rawJob.id);
+
+        await rawJobRepository.markQueued(rawJob.id);
 
         processed++;
       } catch (error) {
         processingFailed++;
 
-        console.error(`❌ Failed processing: ${rawJob.jobTitle}`);
+        console.error(`❌ Failed queueing: ${rawJob.jobTitle}`);
 
         console.error(error);
       }

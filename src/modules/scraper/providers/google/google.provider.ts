@@ -7,6 +7,7 @@ import { googleSearch } from "./google.search.js";
 import { googleList } from "./google.list.js";
 import { googleDetails } from "./google.details.js";
 import { googleMapper } from "./google.mapper.js";
+import { googlePagination } from "./google.pagination.js";
 
 class GoogleProvider implements ScraperProvider {
   readonly id = "google";
@@ -24,31 +25,61 @@ class GoogleProvider implements ScraperProvider {
     try {
       await googleSearch.prepare(page);
 
-      const listings = await googleList.discover(page);
+      const allListings = [];
+
+      let currentPage = 1;
+
+      while (true) {
+        console.log(`📄 Discovering Google page ${currentPage}...`);
+
+        const listings = await googleList.discover(page);
+
+        console.log(`Found ${listings.length} listing(s).`);
+
+        allListings.push(...listings);
+
+        const hasNext = await googlePagination.nextPage(page);
+
+        if (!hasNext) {
+          console.log("✅ Last Google page reached.");
+
+          break;
+        }
+
+        currentPage++;
+      }
+
+      console.log("");
+
+      console.log(`📦 Total Listings Discovered: ${allListings.length}`);
+
+      console.log("");
 
       const jobs: RawJob[] = [];
 
-      for (const listing of listings) {
+      let currentJob = 1;
+
+      for (const listing of allListings) {
         try {
-          const detail = await googleDetails.extract(
-            page,
-            listing,
+          console.log(
+            `(${currentJob}/${allListings.length}) Scraping ${listing.platformJobId}`,
           );
 
-          const rawJob = googleMapper.toRawJob(
-            listing,
-            detail,
-          );
+          const detail = await googleDetails.extract(page, listing);
+
+          const rawJob = googleMapper.toRawJob(listing, detail);
 
           jobs.push(rawJob);
+
+          currentJob++;
         } catch (error) {
-          console.error(
-            `Failed to scrape Google job ${listing.platformJobId}`,
-          );
+          console.error(`Failed to scrape Google job ${listing.platformJobId}`);
 
           console.error(error);
         }
       }
+
+      console.log(`✅ Extracted ${jobs.length} job(s).`);
 
       return jobs;
     } finally {

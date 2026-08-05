@@ -17,7 +17,10 @@
     "test:scraper": "tsx src/scripts/test-scraper.ts",
     "test:job": "tsx src/scripts/test-job-pipeline.ts",
     "test:browser": "tsx src/scripts/test-browser.ts",
-    "test:google": "tsx src/scripts/test-google-provider.ts"
+    "test:google": "tsx src/scripts/test-google-provider.ts",
+    "scraper": "tsx src/scripts/test-scraper.ts",
+    "worker": "tsx src/scripts/job-processing.worker.ts",
+    "cron": "tsx src/scripts/scraper.scheduler.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.13.2",
@@ -26,7 +29,7 @@
     "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/adapter-pg": "^7.9.0",
     "@prisma/client": "^7.9.0",
-    "bullmq": "^5.81.2",
+    "bullmq": "^5.81.3",
     "cloudinary": "^2.10.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",

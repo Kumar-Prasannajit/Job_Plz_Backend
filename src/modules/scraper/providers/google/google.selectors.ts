@@ -3,16 +3,13 @@
 export const googleSelectors = {
   jobHeadings: "h3",
 
-  jobCard:
-    "xpath=ancestor::div[contains(@class,'sMn82b')]",
+  jobCard: "xpath=ancestor::div[contains(@class,'sMn82b')]",
 
-  learnMore:
-    'a[aria-label^="Learn more about"]',
+  learnMore: 'a[aria-label^="Learn more about"]',
 
   detailContainer: "main",
 
-  detailMarkers: [
-    "Minimum qualifications",
-    "About the job",
-  ],
+  detailMarkers: ["Minimum qualifications", "About the job"],
+
+  nextPage: 'a[aria-label="Go to next page"]',
 } as const;

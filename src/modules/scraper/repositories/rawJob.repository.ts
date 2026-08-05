@@ -86,6 +86,47 @@ class RawJobRepository {
       failed,
     };
   }
+
+  async markQueued(id: string) {
+    return prisma.rawJob.update({
+      where: { id },
+      data: {
+        status: "QUEUED",
+        failureReason: null,
+      },
+    });
+  }
+
+  async markProcessing(id: string) {
+    return prisma.rawJob.update({
+      where: { id },
+      data: {
+        status: "PROCESSING",
+        failureReason: null,
+      },
+    });
+  }
+
+  async markCompleted(id: string) {
+    return prisma.rawJob.update({
+      where: { id },
+      data: {
+        status: "COMPLETED",
+        processedAt: new Date(),
+        failureReason: null,
+      },
+    });
+  }
+
+  async markFailed(id: string, reason: string) {
+    return prisma.rawJob.update({
+      where: { id },
+      data: {
+        status: "FAILED",
+        failureReason: reason,
+      },
+    });
+  }
 }
 
 export const rawJobRepository = new RawJobRepository();

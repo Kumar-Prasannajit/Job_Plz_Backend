@@ -1,4 +1,4 @@
-import type { RawJob } from "@prisma/client";
+import type { Job, RawJob } from "@prisma/client";
 
 import { normalizeJob } from "../normalizers/normalizeJob.js";
 
@@ -12,8 +12,8 @@ import { jobValidatorService } from "./jobValidator.service.js";
 
 class JobService {
   async process(
-    rawJob: RawJob,
-  ) {
+  rawJob: RawJob,
+): Promise<Job> {
     console.log("\n========================================");
     console.log("🚀 Starting Job Processing Pipeline");
     console.log("========================================");
@@ -26,40 +26,35 @@ class JobService {
       url: rawJob.jobUrl,
     });
 
-    console.log("\n🤖 Step 2: Extracting structured job...");
-    const extractedJob = await jobExtractorService.extract(
-      rawJob.rawText,
-    );
+    console.log("\n🔍 Step 2: Checking Existing Canonical Job...");
+
+    console.log("\n🤖 Step 3: Extracting structured job...");
+    const extractedJob = await jobExtractorService.extract(rawJob.rawText);
     console.log("✅ Extraction completed");
     console.dir(extractedJob, { depth: null });
 
-    console.log("\n🧹 Step 3: Normalizing...");
+    console.log("\n🧹 Step 4: Normalizing...");
     const normalizedJob = normalizeJob(extractedJob);
     console.log("✅ Normalization completed");
     console.dir(normalizedJob, { depth: null });
 
-    console.log("\n✔️ Step 4: Validating...");
-    const validatedJob =
-      jobValidatorService.validate(normalizedJob);
+    console.log("\n✔️ Step 5: Validating...");
+    const validatedJob = jobValidatorService.validate(normalizedJob);
     console.log("✅ Validation completed");
 
-    console.log("\n💾 Step 5: Saving Canonical Job...");
-    const savedJob = await jobRepository.create(
-      rawJob.id,
-      validatedJob,
-    );
-    console.log("✅ Canonical Job saved");
+    console.log("\n💾 Step 6: Saving Canonical Job...");
+
+    const savedJob = await jobRepository.create(rawJob.id, validatedJob);
+
+    console.log("✅ Canonical Job created");
+
     console.log(savedJob);
 
-    console.log("\n📝 Step 6: Formatting for Embedding...");
+    console.log("\n📝 Step 7: Formatting for Embedding...");
     const embeddings =
-      await jobEmbeddingService.generateEmbeddings(
-        validatedJob,
-      );
+      await jobEmbeddingService.generateEmbeddings(validatedJob);
 
-    console.log(
-      `✅ Generated ${embeddings.length} embedding chunk(s)`,
-    );
+    console.log(`✅ Generated ${embeddings.length} embedding chunk(s)`);
 
     embeddings.forEach((chunk, index) => {
       console.log(`\nChunk ${index}`);
@@ -70,11 +65,8 @@ class JobService {
       console.log("Embedding Dimension:", chunk.embedding.length);
     });
 
-    console.log("\n🧠 Step 7: Saving Embeddings...");
-    await jobEmbeddingRepository.replaceEmbeddings(
-      savedJob.id,
-      embeddings,
-    );
+    console.log("\n🧠 Step 8: Saving Embeddings...");
+    await jobEmbeddingRepository.replaceEmbeddings(savedJob.id, embeddings);
 
     console.log("✅ Embeddings saved");
 
