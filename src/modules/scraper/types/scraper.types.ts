@@ -1,4 +1,3 @@
-import type { RawJob } from "./rawJob.types.js";
 import type { RawJob as RawJobEntity } from "@prisma/client";
 
 export interface ScraperPersistenceResult<T> {

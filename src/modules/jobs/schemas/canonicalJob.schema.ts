@@ -172,8 +172,6 @@ export const MetadataSchema = z.object({
   parserVersion: z.string(),
 
   processedAt: z.string(),
-
-  confidence: z.number().min(0).max(1).optional(),
 });
 
 /* ============================================================================

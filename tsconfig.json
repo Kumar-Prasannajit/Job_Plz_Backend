@@ -4,6 +4,9 @@
     "target": "esnext",
     "types": ["node"],
 
+    "rootDir": "./src",
+    "outDir": "./dist",
+
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
@@ -20,5 +23,6 @@
     "skipLibCheck": true
   },
 
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["dist", "node_modules"]
 }

@@ -6,14 +6,12 @@ import { jobEmbeddingRepository } from "../embeddings/jobEmbedding.repository.js
 import { jobEmbeddingService } from "../embeddings/jobEmbedding.service.js";
 
 import { jobRepository } from "../repositories/job.repository.js";
+import { jobCanonicalProviderRegistry } from "../providers/jobCanonicalProviderRegistry.js";
 
-import { jobExtractorService } from "./jobExtractor.service.js";
 import { jobValidatorService } from "./jobValidator.service.js";
 
 class JobService {
-  async process(
-  rawJob: RawJob,
-): Promise<Job> {
+  async process(rawJob: RawJob): Promise<Job> {
     console.log("\n========================================");
     console.log("🚀 Starting Job Processing Pipeline");
     console.log("========================================");
@@ -28,13 +26,24 @@ class JobService {
 
     console.log("\n🔍 Step 2: Checking Existing Canonical Job...");
 
-    console.log("\n🤖 Step 3: Extracting structured job...");
-    const extractedJob = await jobExtractorService.extract(rawJob.rawText);
-    console.log("✅ Extraction completed");
-    console.dir(extractedJob, { depth: null });
+    console.log("\n🔄 Step 3: Mapping Raw Job → Canonical Job...");
+
+    if (!rawJob.platform) {
+      throw new Error(`RawJob ${rawJob.id} does not have a platform`);
+    }
+
+    const provider = jobCanonicalProviderRegistry.get(rawJob.platform);
+
+    const canonicalJob = await provider.map(rawJob);
+
+    console.log("✅ Canonical mapping completed");
+
+    console.dir(canonicalJob, {
+      depth: null,
+    });
 
     console.log("\n🧹 Step 4: Normalizing...");
-    const normalizedJob = normalizeJob(extractedJob);
+    const normalizedJob = normalizeJob(canonicalJob);
     console.log("✅ Normalization completed");
     console.dir(normalizedJob, { depth: null });
 
