@@ -10,9 +10,13 @@ import { normalizeCompensation } from "./normalizeCompensation.js";
 import { normalizeBenefits } from "./normalizeBenefits.js";
 import { normalizeMetadata } from "./normalizeMetadata.js";
 
+import { enrichSkillsFromJob } from "./utils/enrichSkillsFromJob.js";
+
 export function normalizeJob(
   job: CanonicalJob,
 ): CanonicalJob {
+  const enrichedSkills = enrichSkillsFromJob(job);
+
   return {
     job: normalizeJobInfo(job.job),
 
@@ -24,7 +28,9 @@ export function normalizeJob(
       job.requirements,
     ),
 
-    skills: normalizeSkills(job.skills),
+    skills: normalizeSkills(
+      enrichedSkills,
+    ),
 
     responsibilities: normalizeResponsibilities(
       job.responsibilities,

@@ -6,6 +6,8 @@ import {
 
 import { normalizeString, isBlank } from "./string.utils.js";
 
+import { TECHNOLOGY_CATEGORIES } from "../../../resumes/constants/technology-categories.js";
+
 /**
  * Cached lookup of all canonical technology names.
  */
@@ -259,3 +261,104 @@ export function findUnknownTechnologies(
  */
 export const ALL_CANONICAL_TECHNOLOGIES: readonly TechnologyCanonicalName[] =
   Object.freeze([...CANONICAL_TECHNOLOGIES].sort((a, b) => a.localeCompare(b)));
+
+// helps with O(1) lookups for technology categories
+const TECHNOLOGY_CATEGORY_LOOKUP = new Map(
+  Object.entries(TECHNOLOGY_CATEGORIES),
+);
+
+// Returns the category for a given technology, or null if not found
+export type TechnologyCategory =
+  (typeof TECHNOLOGY_CATEGORIES)[keyof typeof TECHNOLOGY_CATEGORIES];
+
+/**
+ * Returns the skill category for a technology.
+ *
+ * The technology may be:
+ * - canonical
+ * - alias
+ * - mixed case
+ *
+ * Examples:
+ *
+ * ReactJS   -> frontend
+ * react     -> frontend
+ * Node.js   -> backend
+ * PostgreSQL -> database
+ *
+ * Unknown technologies return null.
+ */
+export function getTechnologyCategory(
+  value: string | null | undefined,
+): TechnologyCategory | null {
+  const canonical = getCanonicalTechnology(value);
+
+  if (!canonical) {
+    return null;
+  }
+
+  return TECHNOLOGY_CATEGORIES[canonical] ?? null;
+}
+
+/**
+ * Categorizes technologies into Skills schema buckets.
+ *
+ * Unknown technologies are automatically placed into
+ * miscellaneous.
+ *
+ * Input:
+ *
+ * [
+ *   "React",
+ *   "Node.js",
+ *   "Postgres",
+ *   "Redis"
+ * ]
+ *
+ * Output:
+ *
+ * {
+ *   frontend: ["React.js"],
+ *   backend: ["Node.js"],
+ *   database: ["PostgreSQL"],
+ *   miscellaneous: ["Redis"],
+ *   ...
+ * }
+ */
+export function categorizeTechnologies(
+  technologies: readonly (string | null | undefined)[],
+) {
+  const categorized = {
+    ai: [] as string[],
+    cloud: [] as string[],
+    tools: [] as string[],
+    devops: [] as string[],
+    mobile: [] as string[],
+    backend: [] as string[],
+    testing: [] as string[],
+    database: [] as string[],
+    frontend: [] as string[],
+    languages: [] as string[],
+    softSkills: [] as string[],
+    miscellaneous: [] as string[],
+    operatingSystems: [] as string[],
+  };
+
+  const normalizedTechnologies =
+    normalizeTechnologyArray(technologies);
+
+  for (const technology of normalizedTechnologies) {
+    const category =
+      getTechnologyCategory(technology);
+
+    if (category) {
+      categorized[category].push(technology);
+    } else {
+      categorized.miscellaneous.push(
+        technology,
+      );
+    }
+  }
+
+  return categorized;
+}

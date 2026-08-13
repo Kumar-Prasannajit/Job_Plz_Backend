@@ -5,14 +5,6 @@ export function formatRequirements(
 ): string {
   const lines: string[] = [];
 
-  if (requirements.minimumEducation) {
-    lines.push(`Minimum Education: ${requirements.minimumEducation}`);
-  }
-
-  if (requirements.preferredEducation) {
-    lines.push(`Preferred Education: ${requirements.preferredEducation}`);
-  }
-
   if (
     requirements.minimumExperienceYears !== undefined &&
     requirements.minimumExperienceYears > 0
@@ -46,24 +38,6 @@ export function formatRequirements(
 
     for (const item of requirements.preferredExperience) {
       lines.push(`- ${item}`);
-    }
-  }
-
-  if (requirements.certifications.length > 0) {
-    lines.push("");
-    lines.push("Certifications:");
-
-    for (const certification of requirements.certifications) {
-      lines.push(`- ${certification}`);
-    }
-  }
-
-  if (requirements.languages.length > 0) {
-    lines.push("");
-    lines.push("Languages:");
-
-    for (const language of requirements.languages) {
-      lines.push(`- ${language}`);
     }
   }
 
