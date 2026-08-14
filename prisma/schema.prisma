@@ -63,7 +63,7 @@ model ResumeEmbedding {
   chunkIndex   Int
   chunkContent String
 
-  embedding Unsupported("vector(3072)")
+  embedding Unsupported("vector(768)")
 
   metadata Json?
 
@@ -155,7 +155,7 @@ model JobEmbedding {
 
   chunkContent String
 
-  embedding Unsupported("vector(3072)")
+  embedding Unsupported("vector(768)")
 
   metadata Json?
 

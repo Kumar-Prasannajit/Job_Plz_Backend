@@ -1,4 +1,4 @@
-import { geminiEmbeddingProvider } from "../../embeddings/gemini.provider.js";
+import { ollamaEmbeddingProvider } from "../../embeddings/ollama.provider.js";
 
 import { buildJobChunks } from "./jobChunker.js";
 
@@ -15,7 +15,7 @@ export class JobEmbeddingService {
 
     for (const chunk of chunks) {
       const embedding =
-        await geminiEmbeddingProvider.generateEmbedding(
+        await ollamaEmbeddingProvider.generateEmbedding(
           chunk.content,
         );
 

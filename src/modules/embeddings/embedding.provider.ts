@@ -1,5 +1,9 @@
-import type { ResumeChunk } from "./types.js";
-
 export interface EmbeddingProvider {
-  generateEmbeddings(chunks: ResumeChunk[]): Promise<number[][]>;
+  generateEmbeddings(
+    contents: string[],
+  ): Promise<number[][]>;
+
+  generateEmbedding(
+    content: string,
+  ): Promise<number[]>;
 }

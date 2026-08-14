@@ -1,11 +1,13 @@
 import type { CanonicalResume } from "../resumes/schemas/canonicalResume.schema.js";
 
 import { formatResume } from "../embeddings/formatter/resumeFormatter.js";
-import { GeminiEmbeddingProvider } from "./gemini.provider.js";
+import { ollamaEmbeddingProvider } from "./ollama.provider.js";
+
 import type { ResumeChunk } from "./types.js";
 
 export class EmbeddingService {
-  private readonly provider = new GeminiEmbeddingProvider();
+  private readonly provider =
+    ollamaEmbeddingProvider;
 
   public format(
     resume: CanonicalResume,
@@ -16,8 +18,13 @@ export class EmbeddingService {
   public async generateEmbeddings(
     chunks: ResumeChunk[],
   ): Promise<number[][]> {
-    return this.provider.generateEmbeddings(chunks);
+    return this.provider.generateEmbeddings(
+      chunks.map(
+        (chunk) => chunk.chunkContent,
+      ),
+    );
   }
 }
 
-export const embeddingService = new EmbeddingService();
+export const embeddingService =
+  new EmbeddingService();

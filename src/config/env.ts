@@ -17,5 +17,9 @@ export const env = {
   GEMINI_API_KEY: process.env.GEMINI_API_KEY!,
   GEMINI_MODEL: process.env.GEMINI_MODEL!,
 
+  OLLAMA_BASE_URL: process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+  OLLAMA_EMBEDDING_MODEL:
+    process.env.OLLAMA_EMBEDDING_MODEL || "nomic-embed-text",
+
   REDIS_URL: process.env.REDIS_URL!,
 };

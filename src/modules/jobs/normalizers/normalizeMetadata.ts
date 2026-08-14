@@ -12,9 +12,6 @@ export function normalizeMetadata(
 
     processedAt: normalizeString(
       metadata.processedAt,
-    ),
-
-    confidence:
-      metadata.confidence ?? undefined,
+    )
   };
 }
