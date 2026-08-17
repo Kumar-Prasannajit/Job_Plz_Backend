@@ -6,34 +6,17 @@ import {
   getResumeById,
   updateResume,
   uploadResume,
-  finalizeResume
+  finalizeResume,
 } from "../controllers/resume.controller.js";
 
 const router = Router();
 
-router.post(
-    "/upload",
-    authenticate,
-    upload.single("resume"),
-    uploadResume
-);
+router.post("/upload", authenticate, upload.single("resume"), uploadResume);
 
-router.put(
-  "/:resumeId",
-  authenticate,
-  updateResume
-);
+router.put("/:resumeId", authenticate, updateResume);
 
-router.get(
-  "/:resumeId",
-  authenticate,
-  getResumeById,
-);
+router.get("/:resumeId", authenticate, getResumeById);
 
-router.post(
-  "/:resumeId/finalize",
-  authenticate,
-  finalizeResume,
-);
+router.post("/:resumeId/finalize", authenticate, finalizeResume);
 
 export default router;

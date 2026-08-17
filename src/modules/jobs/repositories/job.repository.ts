@@ -29,15 +29,18 @@ class JobRepository {
     });
   }
 
-  async findById(
-    id: string,
-  ) {
-    return prisma.job.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
+ async findById(
+  id: string,
+) {
+  return prisma.job.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      rawJob: true,
+    },
+  });
+}
 
   async delete(
     id: string,
@@ -48,6 +51,19 @@ class JobRepository {
       },
     });
   }
+
+async findManyByIds(
+  ids: string[],
+) {
+  return prisma.job.findMany({
+    where: {
+      id: {
+        in: ids,
+      },
+    },
+  });
+}
+
 }
 
 export const jobRepository =
