@@ -69,6 +69,26 @@ class EmbeddingRepository {
       console.log(`Saved ${chunks.length} embeddings for resume ${resumeId}`);
     });
   }
+
+  async findByResumeId(resumeId: string) {
+    return prisma.$queryRaw<
+      {
+        chunkIndex: number;
+        chunkType: string;
+        chunkContent: string;
+        embedding: string;
+      }[]
+    >`
+    SELECT
+      "chunkIndex",
+      "chunkType",
+      "chunkContent",
+      embedding::text AS embedding
+    FROM "resume_embeddings"
+    WHERE "resumeId" = ${resumeId}
+    ORDER BY "chunkIndex";
+  `;
+  }
 }
 
 export const embeddingRepository = new EmbeddingRepository();

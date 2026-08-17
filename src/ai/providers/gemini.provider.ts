@@ -16,6 +16,14 @@ export class GeminiProvider implements AIProvider {
     rawResume: string,
     prompt: string,
   ): Promise<Record<string, unknown>> {
+
+    console.log("===== GEMINI DEBUG =====");
+console.log("MODEL:", env.GEMINI_MODEL);
+console.log(
+  "KEY PREFIX:",
+  env.GEMINI_API_KEY?.slice(0, 10),
+);
+console.log("========================");
     if (!prompt) {
       throw new Error("❌ Prompt is empty.");
     }

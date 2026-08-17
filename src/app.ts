@@ -14,7 +14,9 @@ import scraperRoutes from "./modules/scraper/routes/scraper.routes.js";
 
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import router from "./routes/health.route.js";
+import recommendationRouter from "../src/modules/recomendation/routes/recommendation.routes.js";
+import jobRouter from "../src/modules/jobs/routes/job.route.js";
+import userDashboardRouter from "./modules/users/routes/userDashboard.route.js";
 
 const app = express();
 
@@ -61,6 +63,9 @@ app.use("/api/v1/admin/dashboard", dashboardRoutes);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/resumes", resumeRouter);
 app.use("/api/v1/scrapers", scraperRoutes);
+app.use("/api/v1/recommendations", recommendationRouter);
+app.use("/api/v1/jobs", jobRouter);
+app.use("/api/v1/dashboard", userDashboardRouter);
 
 /**
  * 404 Middleware
