@@ -62,3 +62,27 @@ export const clerkWebhook = asyncHandler(
       .json(new ApiResponse(200, null, "Webhook processed successfully"));
   },
 );
+
+export const getCurrentUser = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(401, "Unauthorized");
+    }
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          id: req.user.id,
+          clerkUserId: req.user.clerkUserId,
+          email: req.user.email,
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          imageUrl: req.user.imageUrl,
+          role: req.user.role,
+        },
+        "User fetched successfully",
+      ),
+    );
+  },
+);

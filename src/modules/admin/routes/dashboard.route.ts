@@ -1,17 +1,14 @@
 import { Router } from "express";
 
-import { getAuth } from "@clerk/express";
 import { authenticate } from "../../../middlewares/auth.middleware.js";
-import { requireAdmin } from "../../../middlewares/admin.middleware.js";
+import { authorize } from "../../../middlewares/role.middleware.js";
 
 import { dashboardController } from "../controllers/dashboard.controller.js";
 
 const router = Router();
 
-// Apply authentication and admin authorization to all routes in this router
 router.use(authenticate);
-router.use(requireAdmin);
-
+router.use(authorize("ADMIN"));
 
 router.get("/overview", dashboardController.overview);
 
