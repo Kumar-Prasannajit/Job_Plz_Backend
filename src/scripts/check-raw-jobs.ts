@@ -1,25 +1,29 @@
 // src/scripts/check-raw-jobs.ts
 
-import { prisma } from "../config/database.js";
+import { desc } from "drizzle-orm";
+
+import { db } from "../db/client.js";
+import { rawJobs } from "../db/schema.js";
 
 async function main() {
-  const jobs = await prisma.rawJob.findMany({
-    take: 5,
-    orderBy: {
-      scrapedAt: "desc",
-    },
-    select: {
-      id: true,
-      platform: true,
-      jobTitle: true,
-      companyName: true,
-      scrapedAt: true,
-    },
-  });
+  const jobs = await db
+    .select({
+      id: rawJobs.id,
+      platform: rawJobs.platform,
+      jobTitle: rawJobs.jobTitle,
+      companyName: rawJobs.companyName,
+      scrapedAt: rawJobs.scrapedAt,
+    })
+    .from(rawJobs)
+    .orderBy(desc(rawJobs.scrapedAt))
+    .limit(5);
 
   console.table(jobs);
 
-  await prisma.$disconnect();
+  process.exit(0);
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

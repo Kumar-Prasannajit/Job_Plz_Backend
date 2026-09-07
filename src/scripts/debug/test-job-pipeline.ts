@@ -1,21 +1,20 @@
-import { connectDB } from "../../config/database.js";
+import { desc } from "drizzle-orm";
 
-import { prisma } from "../../config/database.js";
+import { db } from "../../db/client.js";
+import { rawJobs } from "../../db/schema.js";
 
 import { jobService } from "../../modules/jobs/services/job.service.js";
 
 async function main() {
-  await connectDB();
-
   console.log("========================================");
   console.log("🧪 Job Pipeline Test");
   console.log("========================================");
 
-  const rawJob = await prisma.rawJob.findFirst({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const [rawJob] = await db
+    .select()
+    .from(rawJobs)
+    .orderBy(desc(rawJobs.createdAt))
+    .limit(1);
 
   if (!rawJob) {
     throw new Error("No RawJob found in the database.");
@@ -44,6 +43,4 @@ main()
     console.error(error);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));

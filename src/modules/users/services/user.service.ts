@@ -1,4 +1,4 @@
-import type { Prisma, User } from "@prisma/client";
+import type { User } from "../../../db/schema.js";
 import { userRepository } from "../repositories/user.repository.js";
 import type { UserSyncDTO } from "../types/user.types.js";
 

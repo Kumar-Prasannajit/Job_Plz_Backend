@@ -1,17 +1,17 @@
 // src/scripts/requeue-pending-jobs.ts
 
-import { prisma } from "../config/database.js";
+import { asc, eq } from "drizzle-orm";
+
+import { db } from "../db/client.js";
+import { rawJobs } from "../db/schema.js";
 import { jobProcessingProducer } from "../queues/job-processing.producer.js";
 
 async function main() {
-  const pendingJobs = await prisma.rawJob.findMany({
-    where: {
-      status: "PENDING",
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+  const pendingJobs = await db
+    .select()
+    .from(rawJobs)
+    .where(eq(rawJobs.status, "PENDING"))
+    .orderBy(asc(rawJobs.createdAt));
 
   console.log(
     `Found ${pendingJobs.length} pending job(s).`,

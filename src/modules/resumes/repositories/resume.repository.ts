@@ -1,6 +1,8 @@
-import type { Resume } from "@prisma/client";
+import { and, desc, eq } from "drizzle-orm";
 
-import { prisma } from "../../../config/database.js";
+import { db } from "../../../db/client.js";
+import { resumes } from "../../../db/schema.js";
+import type { Resume } from "../../../db/schema.js";
 import type { CanonicalResume } from "../schemas/canonicalResume.schema.js";
 
 export interface CreateResumeInput {
@@ -14,62 +16,74 @@ export interface CreateResumeInput {
 
 class ResumeRepository {
   async create(data: CreateResumeInput): Promise<Resume> {
-    return prisma.resume.create({
-      data: {
+    const [resume] = await db
+      .insert(resumes)
+      .values({
         userId: data.userId,
         originalFileName: data.originalFileName,
         cloudinaryUrl: data.cloudinaryUrl,
         cloudinaryId: data.cloudinaryId,
         parsedData: data.parsedData,
         parserVersion: data.parserVersion,
-      },
-    });
+      })
+      .returning();
+
+    if (!resume) {
+      throw new Error("Failed to create resume.");
+    }
+
+    return resume;
   }
 
   async findByUserId(userId: string): Promise<Resume[]> {
-    return prisma.resume.findMany({
-      where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    return db
+      .select()
+      .from(resumes)
+      .where(eq(resumes.userId, userId))
+      .orderBy(desc(resumes.createdAt));
   }
 
   async findById(resumeId: string): Promise<Resume | null> {
-    return prisma.resume.findUnique({
-      where: {
-        id: resumeId,
-      },
-    });
+    const [resume] = await db
+      .select()
+      .from(resumes)
+      .where(eq(resumes.id, resumeId))
+      .limit(1);
+
+    return resume ?? null;
   }
 
   async findByIdAndUserId(
-  resumeId: string,
-  userId: string,
-): Promise<Resume | null> {
-  return prisma.resume.findFirst({
-    where: {
-      id: resumeId,
-      userId,
-    },
-  });
-}
+    resumeId: string,
+    userId: string,
+  ): Promise<Resume | null> {
+    const [resume] = await db
+      .select()
+      .from(resumes)
+      .where(and(eq(resumes.id, resumeId), eq(resumes.userId, userId)))
+      .limit(1);
+
+    return resume ?? null;
+  }
 
   async updateParsedData(
     resumeId: string,
     parsedData: CanonicalResume,
   ): Promise<Resume> {
-    return prisma.resume.update({
-      where: {
-        id: resumeId,
-      },
-      data: {
+    const [resume] = await db
+      .update(resumes)
+      .set({
         parsedData,
         parserVersion: parsedData.metadata.parserVersion,
-      },
-    });
+      })
+      .where(eq(resumes.id, resumeId))
+      .returning();
+
+    if (!resume) {
+      throw new Error(`Resume not found: ${resumeId}`);
+    }
+
+    return resume;
   }
 }
 

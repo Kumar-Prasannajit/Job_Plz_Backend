@@ -1,4 +1,4 @@
-import type { Job, RawJob } from "@prisma/client";
+import type { Job, RawJob } from "../../../db/schema.js";
 
 import { normalizeJob } from "../normalizers/normalizeJob.js";
 

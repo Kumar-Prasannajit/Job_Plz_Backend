@@ -1,20 +1,16 @@
-import { prisma } from "../../config/database.js";
+import { asc } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { resumeEmbeddings } from "../../db/schema.js";
 
 import { recommendationRepository } from "../../modules/recommendation/repositories/recommendation.repository.js";
 
 async function main() {
-  const chunks = await prisma.$queryRaw<
-    {
-      embedding: string;
-    }[]
-  >`
-    SELECT embedding::text AS embedding
-    FROM "resume_embeddings"
-    ORDER BY "chunkIndex"
-    LIMIT 1;
-  `;
-
-  const firstChunk = chunks[0];
+  const [firstChunk] = await db
+    .select({ embedding: resumeEmbeddings.embedding })
+    .from(resumeEmbeddings)
+    .orderBy(asc(resumeEmbeddings.chunkIndex))
+    .limit(1);
 
   if (!firstChunk) {
     throw new Error(
@@ -22,9 +18,7 @@ async function main() {
     );
   }
 
-  const embedding = JSON.parse(
-    firstChunk.embedding,
-  ) as number[];
+  const embedding = firstChunk.embedding;
 
   console.log(
     `Loaded embedding (${embedding.length} dimensions)`,
@@ -44,6 +38,4 @@ main()
     console.error(error);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));

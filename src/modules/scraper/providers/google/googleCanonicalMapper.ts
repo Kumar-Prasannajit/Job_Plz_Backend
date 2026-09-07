@@ -1,5 +1,5 @@
 // src/modules/scraper/providers/google/googleCanonicalMapper.ts
-import type { RawJob } from "@prisma/client";
+import type { RawJob } from "../../../../db/schema.js";
 import type { CanonicalJob } from "../../../jobs/schemas/canonicalJob.schema.js";
 
 import type { GoogleSections } from "./googleSectionExtractor.js";

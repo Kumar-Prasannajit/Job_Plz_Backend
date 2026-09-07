@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 export interface RawJob {
   jobUrl: string;
 
@@ -15,7 +13,7 @@ export interface RawJob {
   rawHtml?: string;
   rawText: string;
 
-  rawJson?: Prisma.InputJsonValue;
+  rawJson?: unknown;
 
   location?: string;
 

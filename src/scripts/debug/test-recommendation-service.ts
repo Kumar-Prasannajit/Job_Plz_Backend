@@ -1,13 +1,16 @@
-import { prisma } from "../../config/database.js";
+import { desc } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { resumes } from "../../db/schema.js";
 
 import { recommendationService } from "../../modules/recommendation/services/recommendation.service.js";
 
 async function main() {
-  const resume = await prisma.resume.findFirst({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const [resume] = await db
+    .select()
+    .from(resumes)
+    .orderBy(desc(resumes.createdAt))
+    .limit(1);
 
   if (!resume) {
     throw new Error(
@@ -69,6 +72,4 @@ main()
     console.error(error);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));

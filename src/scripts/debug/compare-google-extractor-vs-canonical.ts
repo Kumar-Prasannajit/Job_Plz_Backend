@@ -1,4 +1,7 @@
-import { prisma } from "../../config/database.js";
+import { desc } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { jobs } from "../../db/schema.js";
 import { googleSectionExtractor } from "../../modules/scraper/providers/google/googleSectionExtractor.js";
 
 function normalize(value: unknown) {
@@ -11,23 +14,21 @@ function normalize(value: unknown) {
 }
 
 async function main() {
-  const jobs = await prisma.job.findMany({
-    take: 50,
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
+  const jobRows = await db.query.jobs.findMany({
+    orderBy: desc(jobs.createdAt),
+    limit: 50,
+    with: {
       rawJob: true,
     },
   });
 
-  console.log(`Testing ${jobs.length} jobs...\n`);
+  console.log(`Testing ${jobRows.length} jobs...\n`);
 
   let titleMatches = 0;
   let locationMatches = 0;
   let levelMatches = 0;
 
-  for (const [index, job] of jobs.entries()) {
+  for (const [index, job] of jobRows.entries()) {
     const canonical = job.canonicalData as any;
 
     const extracted =
@@ -81,36 +82,36 @@ async function main() {
   console.table({
     Title: {
       matched: titleMatches,
-      total: jobs.length,
+      total: jobRows.length,
       success:
         (
-          (titleMatches / jobs.length) *
+          (titleMatches / jobRows.length) *
           100
         ).toFixed(2) + "%",
     },
 
     Location: {
       matched: locationMatches,
-      total: jobs.length,
+      total: jobRows.length,
       success:
         (
-          (locationMatches / jobs.length) *
+          (locationMatches / jobRows.length) *
           100
         ).toFixed(2) + "%",
     },
 
     Level: {
       matched: levelMatches,
-      total: jobs.length,
+      total: jobRows.length,
       success:
         (
-          (levelMatches / jobs.length) *
+          (levelMatches / jobRows.length) *
           100
         ).toFixed(2) + "%",
     },
   });
 
-  await prisma.$disconnect();
+  process.exit(0);
 }
 
 main().catch(console.error);

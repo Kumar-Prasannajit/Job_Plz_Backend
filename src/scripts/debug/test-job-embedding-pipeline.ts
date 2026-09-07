@@ -1,6 +1,7 @@
 // src/scripts/test-job-embedding-pipeline.ts
 
-import { prisma } from "../../config/database.js";
+import { db } from "../../db/client.js";
+import { jobs } from "../../db/schema.js";
 
 import { buildJobChunks } from "../../modules/jobs/embeddings/jobChunker.js";
 import { jobEmbeddingService } from "../../modules/jobs/embeddings/jobEmbedding.service.js";
@@ -12,7 +13,7 @@ async function main() {
   console.log("FETCHING JOB");
   console.log("=================================\n");
 
-  const job = await prisma.job.findFirst();
+  const [job] = await db.select().from(jobs).limit(1);
 
   if (!job) {
     throw new Error("No jobs found");
@@ -76,6 +77,4 @@ main()
     console.error(error);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));

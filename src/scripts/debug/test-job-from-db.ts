@@ -1,13 +1,16 @@
-import { prisma } from "../../config/database.js";
+import { desc } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { jobs } from "../../db/schema.js";
 
 import { normalizeJob } from "../../modules/jobs/normalizers/normalizeJob.js";
 
 async function main() {
-  const job = await prisma.job.findFirst({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const [job] = await db
+    .select()
+    .from(jobs)
+    .orderBy(desc(jobs.createdAt))
+    .limit(1);
 
   if (!job) {
     throw new Error("No jobs found");
@@ -42,6 +45,4 @@ async function main() {
 
 main()
   .catch(console.error)
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));

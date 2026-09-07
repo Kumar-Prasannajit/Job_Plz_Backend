@@ -1,7 +1,5 @@
 import { Worker } from "bullmq";
 
-import { prisma } from "../config/database.js";
-
 import { queueConnection } from "../queues/index.js";
 
 import { jobRepository } from "../modules/jobs/repositories/job.repository.js";
@@ -18,11 +16,7 @@ export const jobProcessingWorker = new Worker(
     console.log(`📨 Processing Queue Job: ${job.id}`);
     console.log("========================================");
 
-    const rawJob = await prisma.rawJob.findUnique({
-      where: {
-        id: job.data.rawJobId,
-      },
-    });
+    const rawJob = await rawJobRepository.findById(job.data.rawJobId);
 
     if (!rawJob) {
       throw new Error(

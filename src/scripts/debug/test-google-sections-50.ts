@@ -1,18 +1,18 @@
 // src/scripts/test-google-sections-50.ts
 
-import { prisma } from "../../config/database.js";
+import { desc, eq } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { rawJobs } from "../../db/schema.js";
 import { googleSectionExtractor } from "../../modules/scraper/providers/google/googleSectionExtractor.js";
 
 async function main() {
-  const jobs = await prisma.rawJob.findMany({
-    where: {
-      platform: "Google Careers",
-    },
-    orderBy: {
-      scrapedAt: "desc",
-    },
-    take: 50,
-  });
+  const jobs = await db
+    .select()
+    .from(rawJobs)
+    .where(eq(rawJobs.platform, "Google Careers"))
+    .orderBy(desc(rawJobs.scrapedAt))
+    .limit(50);
 
   console.log(`Testing ${jobs.length} jobs...\n`);
 
@@ -60,7 +60,7 @@ async function main() {
     ).toFixed(2)}%`,
   );
 
-  await prisma.$disconnect();
+  process.exit(0);
 }
 
 main().catch(console.error);

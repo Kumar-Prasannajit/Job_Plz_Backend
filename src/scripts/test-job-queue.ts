@@ -1,9 +1,10 @@
-import { prisma } from "../config/database.js";
+import { db } from "../db/client.js";
+import { rawJobs } from "../db/schema.js";
 
 import { jobProcessingProducer } from "../queues/job-processing.producer.js";
 
 async function main() {
-  const rawJob = await prisma.rawJob.findFirst();
+  const [rawJob] = await db.select().from(rawJobs).limit(1);
 
   if (!rawJob) {
     throw new Error("No RawJob found.");
@@ -20,7 +21,6 @@ async function main() {
 
 main()
   .catch(console.error)
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
     process.exit(0);
   });

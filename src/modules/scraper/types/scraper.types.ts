@@ -1,4 +1,4 @@
-import type { RawJob as RawJobEntity } from "@prisma/client";
+import type { RawJob as RawJobEntity } from "../../../db/schema.js";
 
 export interface ScraperPersistenceResult<T> {
   inserted: T[];

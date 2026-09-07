@@ -1,17 +1,18 @@
 // src/scripts/test-google-sections.ts
 
-import { prisma } from "../../config/database.js";
+import { desc, eq } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { rawJobs } from "../../db/schema.js";
 import { googleSectionExtractor } from "../../modules/scraper/providers/google/googleSectionExtractor.js";
 
 async function main() {
-  const rawJob = await prisma.rawJob.findFirst({
-    where: {
-      platform: "Google Careers",
-    },
-    orderBy: {
-      scrapedAt: "desc",
-    },
-  });
+  const [rawJob] = await db
+    .select()
+    .from(rawJobs)
+    .where(eq(rawJobs.platform, "Google Careers"))
+    .orderBy(desc(rawJobs.scrapedAt))
+    .limit(1);
 
   if (!rawJob) {
     console.log("❌ No Google job found");
@@ -63,10 +64,10 @@ async function main() {
       sections.about?.length ?? 0,
   });
 
-  await prisma.$disconnect();
+  process.exit(0);
 }
 
-main().catch(async (error) => {
+main().catch((error) => {
   console.error(error);
-  await prisma.$disconnect();
+  process.exit(1);
 });

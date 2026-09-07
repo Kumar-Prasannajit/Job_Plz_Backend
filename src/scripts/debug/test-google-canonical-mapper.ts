@@ -1,17 +1,18 @@
-import { prisma } from "../../config/database.js";
+import { desc, eq } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { rawJobs } from "../../db/schema.js";
 
 import { googleSectionExtractor } from "../../modules/scraper/providers/google/googleSectionExtractor.js";
 import { googleCanonicalMapper } from "../../modules/scraper/providers/google/googleCanonicalMapper.js";
 
 async function main() {
-  const rawJob = await prisma.rawJob.findFirst({
-    where: {
-      platform: "Google Careers",
-    },
-    orderBy: {
-      scrapedAt: "desc",
-    },
-  });
+  const [rawJob] = await db
+    .select()
+    .from(rawJobs)
+    .where(eq(rawJobs.platform, "Google Careers"))
+    .orderBy(desc(rawJobs.scrapedAt))
+    .limit(1);
 
   if (!rawJob) {
     console.log("No Google job found");
@@ -37,4 +38,4 @@ async function main() {
 
 main()
   .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .finally(() => process.exit(0));

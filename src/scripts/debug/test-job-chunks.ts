@@ -1,9 +1,10 @@
-import { prisma } from "../../config/database.js";
+import { db } from "../../db/client.js";
+import { jobs } from "../../db/schema.js";
 
 import { buildJobChunks } from "../../modules/jobs/embeddings/jobChunker.js";
 
 async function main() {
-  const job = await prisma.job.findFirst();
+  const [job] = await db.select().from(jobs).limit(1);
 
   if (!job) {
     throw new Error("No jobs found");
@@ -20,6 +21,4 @@ async function main() {
 
 main()
   .catch(console.error)
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));

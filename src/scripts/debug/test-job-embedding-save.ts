@@ -1,15 +1,17 @@
 // src/scripts/test-job-embedding-save.ts
 
-import { prisma } from "../../config/database.js";
+import { asc, eq } from "drizzle-orm";
 
-import { buildJobChunks } from "../../modules/jobs/embeddings/jobChunker.js";
+import { db } from "../../db/client.js";
+import { jobs, jobEmbeddings } from "../../db/schema.js";
+
 import { jobEmbeddingService } from "../../modules/jobs/embeddings/jobEmbedding.service.js";
 import { jobEmbeddingRepository } from "../../modules/jobs/embeddings/jobEmbedding.repository.js";
 
 import type { CanonicalJob } from "../../modules/jobs/schemas/canonicalJob.schema.js";
 
 async function main() {
-  const job = await prisma.job.findFirst();
+  const [job] = await db.select().from(jobs).limit(1);
 
   if (!job) {
     throw new Error("No jobs found");
@@ -28,15 +30,11 @@ async function main() {
     embeddings,
   );
 
-  const saved =
-    await prisma.jobEmbedding.findMany({
-      where: {
-        jobId: job.id,
-      },
-      orderBy: {
-        chunkIndex: "asc",
-      },
-    });
+  const saved = await db
+    .select()
+    .from(jobEmbeddings)
+    .where(eq(jobEmbeddings.jobId, job.id))
+    .orderBy(asc(jobEmbeddings.chunkIndex));
 
   console.log(
     "Saved embeddings:",
@@ -53,6 +51,4 @@ async function main() {
 
 main()
   .catch(console.error)
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => process.exit(0));
