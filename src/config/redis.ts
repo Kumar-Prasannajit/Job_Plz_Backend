@@ -1,9 +1,8 @@
 import { Redis } from "ioredis";
 
-export const redis = new Redis({
-  host: process.env.REDIS_HOST ?? "localhost",
-  port: Number(process.env.REDIS_PORT ?? 6379),
+import { env } from "./env.js";
 
+export const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 

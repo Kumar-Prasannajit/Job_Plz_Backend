@@ -21,5 +21,38 @@ export const env = {
   OLLAMA_EMBEDDING_MODEL:
     process.env.OLLAMA_EMBEDDING_MODEL || "nomic-embed-text",
 
-  REDIS_URL: process.env.REDIS_URL!,
+  REDIS_URL: process.env.REDIS_URL || "redis://localhost:6379",
 };
+
+const REQUIRED_ENV_KEYS: (keyof typeof env)[] = [
+  "DATABASE_URL",
+
+  "CLERK_SECRET_KEY",
+  "CLERK_PUBLISHABLE_KEY",
+  "CLERK_WEBHOOK_SECRET",
+
+  "CLOUDINARY_CLOUD_NAME",
+  "CLOUDINARY_API_KEY",
+  "CLOUDINARY_API_SECRET",
+
+  "GEMINI_API_KEY",
+  "GEMINI_MODEL",
+];
+
+function validateEnv(): void {
+  const missingKeys = REQUIRED_ENV_KEYS.filter((key) => !env[key]);
+
+  if (missingKeys.length > 0) {
+    console.error("❌ Missing required environment variables:");
+
+    for (const key of missingKeys) {
+      console.error(`   - ${key}`);
+    }
+
+    console.error("\nCheck your .env file against .env.example.");
+
+    process.exit(1);
+  }
+}
+
+validateEnv();

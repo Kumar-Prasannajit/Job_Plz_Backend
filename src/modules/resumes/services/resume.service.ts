@@ -31,7 +31,7 @@ class ResumeService {
       uploadToCloudinary(file.buffer, "resumes"),
       resumeParserService.parse(file.buffer),
     ]);
-
+    console.log(rawText);
     // AI extraction
     const extractedResume = await resumeExtractorService.extract(rawText);
 
@@ -146,6 +146,14 @@ class ResumeService {
     const duplicateIndexes = chunks
       .map((c) => c.chunkIndex)
       .filter((index, i, arr) => arr.indexOf(index) !== i);
+
+    if (duplicateIndexes.length > 0) {
+      throw new ApiError(
+        500,
+        "Resume formatter produced duplicate chunk indexes.",
+        duplicateIndexes,
+      );
+    }
 
     console.table(
       chunks.map((c) => ({
