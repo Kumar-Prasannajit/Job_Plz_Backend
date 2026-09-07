@@ -84,7 +84,7 @@ class RecommendationService {
         continue;
       }
 
-      const embedding = JSON.parse(chunk.embedding) as number[];
+      const embedding = chunk.embedding;
 
       const targetChunkTypes =
         SECTION_MAPPING[chunk.chunkType as keyof typeof SECTION_MAPPING];

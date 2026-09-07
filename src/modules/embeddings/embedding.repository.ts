@@ -1,5 +1,8 @@
-import { createId } from "@paralleldrive/cuid2";
-import { prisma } from "../../config/database.js";
+import { eq } from "drizzle-orm";
+
+import { db } from "../../db/client.js";
+import { resumeEmbeddings } from "../../db/schema.js";
+
 import type { ResumeChunk } from "./types.js";
 
 class EmbeddingRepository {
@@ -12,82 +15,49 @@ class EmbeddingRepository {
       throw new Error("Chunks and embeddings count do not match.");
     }
 
-    await prisma.$transaction(async (tx) => {
+    await db.transaction(async (tx) => {
       // Delete old embeddings
-      await tx.$executeRaw`
-        DELETE FROM "resume_embeddings"
-        WHERE "resumeId" = ${resumeId};
-      `;
+      await tx
+        .delete(resumeEmbeddings)
+        .where(eq(resumeEmbeddings.resumeId, resumeId));
 
       // Insert new embeddings
-      for (const [index, chunk] of chunks.entries()) {
+      const rows = chunks.map((chunk, index) => {
         const embedding = embeddings.at(index);
 
         if (!embedding) {
           throw new Error(`Missing embedding for chunk ${index}`);
         }
 
-        const vector = `[${embedding.join(",")}]`;
-        const metadata = JSON.stringify(chunk.metadata ?? null);
-
-        await tx.$executeRawUnsafe(
-          `
-  INSERT INTO "resume_embeddings"
-  (
-    "id",
-    "resumeId",
-    "chunkType",
-    "chunkIndex",
-    "chunkContent",
-    "embedding",
-    "metadata",
-    "createdAt",
-    "updatedAt"
-  )
-  VALUES
-  (
-    $1,
-    $2,
-    $3::"ChunkType",
-    $4,
-    $5,
-    $6::vector,
-    $7::jsonb,
-    NOW(),
-    NOW()
-  )
-  `,
-          createId(),
+        return {
           resumeId,
-          chunk.chunkType,
-          chunk.chunkIndex,
-          chunk.chunkContent,
-          vector,
-          metadata,
-        );
+          chunkType: chunk.chunkType,
+          chunkIndex: chunk.chunkIndex,
+          chunkContent: chunk.chunkContent,
+          embedding,
+          metadata: chunk.metadata ?? null,
+        };
+      });
+
+      if (rows.length > 0) {
+        await tx.insert(resumeEmbeddings).values(rows);
       }
+
       console.log(`Saved ${chunks.length} embeddings for resume ${resumeId}`);
     });
   }
 
   async findByResumeId(resumeId: string) {
-    return prisma.$queryRaw<
-      {
-        chunkIndex: number;
-        chunkType: string;
-        chunkContent: string;
-        embedding: string;
-      }[]
-    >`
-    SELECT
-      "chunkIndex",
-      "chunkType",
-      "chunkContent",
-      embedding::text AS embedding
-    FROM "resume_embeddings"
-    WHERE "resumeId" = ${resumeId}
-    ORDER BY "chunkIndex";
-  `;
+    return db
+      .select({
+        chunkIndex: resumeEmbeddings.chunkIndex,
+        chunkType: resumeEmbeddings.chunkType,
+        chunkContent: resumeEmbeddings.chunkContent,
+        embedding: resumeEmbeddings.embedding,
+      })
+      .from(resumeEmbeddings)
+      .where(eq(resumeEmbeddings.resumeId, resumeId))
+      .orderBy(resumeEmbeddings.chunkIndex);
   }
 }
 

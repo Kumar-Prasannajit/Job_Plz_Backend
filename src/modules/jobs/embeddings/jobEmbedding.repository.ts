@@ -1,6 +1,7 @@
-import { createId } from "@paralleldrive/cuid2";
+import { eq } from "drizzle-orm";
 
-import { prisma } from "../../../config/database.js";
+import { db } from "../../../db/client.js";
+import { jobEmbeddings } from "../../../db/schema.js";
 
 import type { EmbeddedJobChunk } from "./jobEmbedding.types.js";
 
@@ -9,59 +10,25 @@ class JobEmbeddingRepository {
     jobId: string,
     chunks: EmbeddedJobChunk[],
   ): Promise<void> {
-    await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`
-        DELETE FROM "job_embeddings"
-        WHERE "jobId" = ${jobId};
-      `;
+    await db.transaction(async (tx) => {
+      await tx.delete(jobEmbeddings).where(eq(jobEmbeddings.jobId, jobId));
 
-      for (const chunk of chunks) {
-        const vector = `[${chunk.embedding.join(",")}]`;
-        const metadata = JSON.stringify(null);
+      const rows = chunks.map((chunk) => ({
+        jobId,
+        chunkType: chunk.chunkType,
+        chunkIndex: chunk.chunkIndex,
+        chunkContent: chunk.content,
+        embedding: chunk.embedding,
+        metadata: null,
+      }));
 
-        await tx.$executeRawUnsafe(
-          `
-INSERT INTO "job_embeddings"
-(
-  "id",
-  "jobId",
-  "chunkType",
-  "chunkIndex",
-  "chunkContent",
-  "embedding",
-  "metadata",
-  "createdAt",
-  "updatedAt"
-)
-VALUES
-(
-  $1,
-  $2,
-  $3::"JobChunkType",
-  $4,
-  $5,
-  $6::vector,
-  $7::jsonb,
-  NOW(),
-  NOW()
-)
-`,
-          createId(),
-          jobId,
-          chunk.chunkType,
-          chunk.chunkIndex,
-          chunk.content,
-          vector,
-          metadata,
-        );
+      if (rows.length > 0) {
+        await tx.insert(jobEmbeddings).values(rows);
       }
 
-      console.log(
-        `Saved ${chunks.length} embeddings for job ${jobId}`,
-      );
+      console.log(`Saved ${chunks.length} embeddings for job ${jobId}`);
     });
   }
 }
 
-export const jobEmbeddingRepository =
-  new JobEmbeddingRepository();
+export const jobEmbeddingRepository = new JobEmbeddingRepository();

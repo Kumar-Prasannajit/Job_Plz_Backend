@@ -1,22 +1,13 @@
 // src/modules/admin/services/dashboard.service.ts
 
-import { prisma } from "../../../config/database.js";
+import { dashboardRepository } from "../repositories/dashboard.repository.js";
 
 class DashboardService {
   async getOverview() {
-    const [
-      rawJobs,
-      canonicalJobs,
-      embeddings,
-    ] = await Promise.all([
-      prisma.rawJob.groupBy({
-        by: ["status"],
-        _count: true,
-      }),
-
-      prisma.job.count(),
-
-      prisma.jobEmbedding.count(),
+    const [rawJobsByStatus, canonicalJobs, embeddings] = await Promise.all([
+      dashboardRepository.countRawJobsByStatus(),
+      dashboardRepository.countJobs(),
+      dashboardRepository.countJobEmbeddings(),
     ]);
 
     const stats = {
@@ -27,24 +18,24 @@ class DashboardService {
       failed: 0,
     };
 
-    for (const row of rawJobs) {
-      stats.total += row._count;
+    for (const row of rawJobsByStatus) {
+      stats.total += row.count;
 
       switch (row.status) {
         case "PENDING":
-          stats.pending = row._count;
+          stats.pending = row.count;
           break;
 
         case "PROCESSING":
-          stats.processing = row._count;
+          stats.processing = row.count;
           break;
 
         case "COMPLETED":
-          stats.completed = row._count;
+          stats.completed = row.count;
           break;
 
         case "FAILED":
-          stats.failed = row._count;
+          stats.failed = row.count;
           break;
       }
     }
@@ -63,10 +54,7 @@ class DashboardService {
   }
 
   async getSources() {
-    const rows = await prisma.rawJob.groupBy({
-      by: ["platform", "status"],
-      _count: true,
-    });
+    const rows = await dashboardRepository.countRawJobsByPlatformAndStatus();
 
     const result = new Map<
       string,
@@ -96,23 +84,23 @@ class DashboardService {
 
       const item = result.get(source)!;
 
-      item.total += row._count;
+      item.total += row.count;
 
       switch (row.status) {
         case "PENDING":
-          item.pending = row._count;
+          item.pending = row.count;
           break;
 
         case "PROCESSING":
-          item.processing = row._count;
+          item.processing = row.count;
           break;
 
         case "COMPLETED":
-          item.completed = row._count;
+          item.completed = row.count;
           break;
 
         case "FAILED":
-          item.failed = row._count;
+          item.failed = row.count;
           break;
       }
     }
@@ -121,24 +109,8 @@ class DashboardService {
   }
 
   async getRecentJobs(limit = 20) {
-    return prisma.rawJob.findMany({
-      take: limit,
-
-      orderBy: {
-        scrapedAt: "desc",
-      },
-
-      select: {
-        id: true,
-        jobTitle: true,
-        companyName: true,
-        platform: true,
-        status: true,
-        scrapedAt: true,
-      },
-    });
+    return dashboardRepository.findRecent(limit);
   }
 }
 
-export const dashboardService =
-  new DashboardService();
+export const dashboardService = new DashboardService();
