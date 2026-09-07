@@ -56,7 +56,8 @@ npx prisma generate
 # Start development server (Terminal 1)
 npm run dev
 
-# Start the job-processing worker (Terminal 2 — see "Background Queue & Worker" below)
+# Trigger a scrape, then start the worker to process it (Terminal 2 — see "Background Queue & Worker" below)
+npm run scraper
 npm run worker
 ```
 
@@ -69,16 +70,30 @@ There are **two separate embedding paths** in this codebase, and only one of the
 | **Resume embeddings** | `POST /api/v1/resumes/:id/finalize` | **Synchronously**, inside the HTTP request. No queue/worker involved. |
 | **Job embeddings** | Job scraper → `RawJob` saved → enqueued on the `job-processing` BullMQ queue | **Asynchronously**, inside the `job-processing.worker.ts` worker process, which must be running separately. |
 
-### Correct startup order
+### Daily workflow — scraping jobs end to end
 
-1. **Redis** must be running first — BullMQ can't enqueue/consume jobs without it.
-2. **PostgreSQL** must be running and migrated (`npx prisma migrate dev`).
-3. **Ollama** must be running with `nomic-embed-text` pulled (embeddings will fail otherwise, for both resumes and jobs).
-4. Start the API server: `npm run dev`
-5. Start the worker **in a separate terminal**: `npm run worker`
-   - This runs `src/scripts/job-processing.worker.ts`, which registers the BullMQ `Worker` for the `job-processing` queue (`src/workers/job-processing.worker.ts`).
-   - The worker must be kept running for scraped jobs to ever move from `RawJob` (status `PENDING`) to a canonical `Job` with embeddings.
-6. Trigger scraping to enqueue work: `POST /api/v1/scrapers/:providerId/run` (see `GET /api/v1/scrapers/providers` for valid provider IDs). Each scraped listing is saved as a `RawJob` and enqueued automatically — you don't enqueue manually in normal use.
+This is the actual sequence to run, in order, to go from "no jobs in the DB" to "canonical jobs with embeddings ready to match against":
+
+1. **Make sure the always-on services are running first** (once per machine session, not per scrape):
+   - PostgreSQL (migrated: `npx prisma migrate dev`)
+   - Redis
+   - Ollama (`ollama serve`, with `nomic-embed-text` pulled)
+2. **Terminal 1 — start the API server:**
+   ```bash
+   npm run dev
+   ```
+3. **Terminal 2 — run the scraper:**
+   ```bash
+   npm run scraper
+   ```
+   This runs `src/scripts/run-scraper.ts`, which calls the same `scraperService.scrape()` that `POST /api/v1/scrapers/:providerId/run` calls — it scrapes the Google Jobs provider, inserts new listings as `RawJob` rows, and enqueues each one onto the `job-processing` BullMQ queue. It exits when scraping is done; **queued jobs just sit in Redis until a worker picks them up.**
+4. **Terminal 2 (after the scraper exits) — start the worker:**
+   ```bash
+   npm run worker
+   ```
+   This runs `src/scripts/job-processing.worker.ts`, which starts a long-lived BullMQ `Worker` that drains the `job-processing` queue: for each queued `RawJob` it builds the canonical `Job`, generates its embeddings via Ollama, and saves both. **Leave this running** — it keeps consuming until you stop it (`Ctrl+C`), and it's fine to start it before step 3 too (it'll just idle until there's something queued).
+
+You don't have to run the scraper and worker in that exact order every time — the worker can already be running and idle, and a fresh `npm run scraper` will just feed it. The one thing that matters is: **nothing gets processed into canonical jobs until the worker is running**, no matter how many times you scrape.
 
 ### Useful queue scripts
 
@@ -86,12 +101,13 @@ Run these with `tsx` (e.g. `npx tsx src/scripts/check-queue.ts`):
 
 | Script | Purpose |
 | --- | --- |
+| `npm run scraper` (`src/scripts/run-scraper.ts`) | Manually trigger a scrape — same effect as `POST /api/v1/scrapers/google/run` |
 | `src/scripts/check-queue.ts` | Print job counts (waiting/active/completed/failed/delayed/paused) for the `job-processing` queue |
 | `src/scripts/test-queue-status.ts` | Print job counts plus details of any failed jobs |
 | `src/scripts/requeue-pending-jobs.ts` | Re-enqueue every `RawJob` still stuck in `PENDING` status (useful after the worker was down or a bug is fixed) |
 | `src/scripts/test-job-queue.ts` | Enqueue a single existing `RawJob` from the DB, for manual testing |
 
-Everything else in `src/scripts/` was one-off debugging/exploration (Google provider diagnostics, embedding pipeline dry-runs, etc.) and lives in `src/scripts/debug/` to keep it separate from the operational scripts above. `npm run test:*`, `npm run scraper`, and `npm run worker` still work the same as before — only the on-disk paths moved.
+Everything else in `src/scripts/` was one-off debugging/exploration (Google provider diagnostics, embedding pipeline dry-runs, etc.) and lives in `src/scripts/debug/` to keep it separate from the operational scripts above.
 
 ## API Routes
 
@@ -112,7 +128,8 @@ Everything else in `src/scripts/` was one-off debugging/exploration (Google prov
 npm run dev              # Dev server with watch
 npm run build            # Compile TypeScript
 npm run start            # Run compiled server (dist/server.js)
-npm run worker           # Start the job-processing BullMQ worker (must be running for job scraping to work)
+npm run scraper          # Manually run the Google Jobs scraper (see "Daily workflow" above)
+npm run worker           # Start the job-processing BullMQ worker (must be running for scraped jobs to be processed)
 npm run cron             # ⚠️ Currently broken — src/scripts/scraper.scheduler.ts no longer exists
 npm run typecheck        # Type-check without emit
 npm run prisma:migrate   # Run migrations

@@ -1,7 +1,7 @@
-import { connectDB } from "../../config/database.js";
+import { connectDB } from "../config/database.js";
 
-import { scraperService } from "../../modules/scraper/services/scraper.service.js";
-import { googleProvider } from "../../modules/scraper/providers/google/google.provider.js";
+import { scraperService } from "../modules/scraper/services/scraper.service.js";
+import { googleProvider } from "../modules/scraper/providers/google/google.provider.js";
 
 async function main() {
   await connectDB();

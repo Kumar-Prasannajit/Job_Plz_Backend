@@ -14,11 +14,10 @@
     "prisma:reset": "prisma migrate reset",
     "prisma:studio": "prisma studio",
     "typecheck": "tsc --noEmit",
-    "test:scraper": "tsx src/scripts/debug/test-scraper.ts",
     "test:job": "tsx src/scripts/debug/test-job-pipeline.ts",
     "test:browser": "tsx src/scripts/debug/test-browser.ts",
     "test:google": "tsx src/scripts/debug/test-google-provider.ts",
-    "scraper": "tsx src/scripts/debug/test-scraper.ts",
+    "scraper": "tsx src/scripts/run-scraper.ts",
     "worker": "tsx src/scripts/job-processing.worker.ts",
     "cron": "tsx src/scripts/scraper.scheduler.ts"
   },
