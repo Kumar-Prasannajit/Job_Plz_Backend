@@ -6,17 +6,17 @@ import morgan from "morgan";
 import { clerkMiddleware } from "@clerk/express";
 import { env } from "./config/env.js";
 
-import healthRouter from "./routes/health.route.js";
-import dashboardRoutes from "../src/modules/admin/routes/dashboard.route.js";
-import userRouter from "./modules/users/routes/user.route.js";
-import resumeRouter from "./modules/resumes/routes/resume.route.js";
+import healthRouter from "./modules/health/routes/health.routes.js";
+import dashboardRoutes from "../src/modules/admin/routes/dashboard.routes.js";
+import userRouter from "./modules/users/routes/user.routes.js";
+import resumeRouter from "./modules/resumes/routes/resume.routes.js";
 import scraperRoutes from "./modules/scraper/routes/scraper.routes.js";
 
 import { notFoundHandler } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
-import recommendationRouter from "../src/modules/recomendation/routes/recommendation.routes.js";
-import jobRouter from "../src/modules/jobs/routes/job.route.js";
-import userDashboardRouter from "./modules/users/routes/userDashboard.route.js";
+import recommendationRouter from "../src/modules/recommendation/routes/recommendation.routes.js";
+import jobRouter from "../src/modules/jobs/routes/job.routes.js";
+import userDashboardRouter from "./modules/users/routes/userDashboard.routes.js";
 
 const app = express();
 
