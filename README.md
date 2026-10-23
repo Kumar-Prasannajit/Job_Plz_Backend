@@ -28,34 +28,107 @@ AI-powered job suggestion backend that parses resumes, generates embeddings, and
 
 ## Prerequisites
 
-Make sure these are installed and running **before** starting the app:
+Install these first:
 
-- **PostgreSQL** with the `pgvector` extension enabled
+- **Node.js 24**, the version this project is developed and tested on (see `.nvmrc`; with nvm, run `nvm use`)
+- **PostgreSQL** with the **pgvector** extension *installed*. The first migration enables it with `CREATE EXTENSION IF NOT EXISTS vector`, but the extension itself has to exist on the server.
 - **Redis** (used by BullMQ for the job-processing queue)
-- **[Ollama](https://ollama.com)**, running locally, with the embedding model pulled:
-  ```bash
-  ollama serve
-  ollama pull nomic-embed-text
-  ```
+- **[Ollama](https://ollama.com)** for embeddings
+- **Docker** (optional, but the easiest way to get Postgres + pgvector and Redis)
+
+You also need accounts for these services; each gives you keys for `.env`:
+
+| Service | Used for | Where to get the keys |
+| --- | --- | --- |
+| [Clerk](https://dashboard.clerk.com) | Auth | Your app → **API keys** (`CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`); the webhook signing secret comes in step 6 below |
+| [Cloudinary](https://console.cloudinary.com) | Resume PDF storage | Dashboard → **API keys** (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`) |
+| [Google AI Studio](https://aistudio.google.com/apikey) | Gemini resume extraction | `GEMINI_API_KEY` (`GEMINI_MODEL` is pre-filled in `.env.example`) |
 
 ## Getting Started
 
+### 1. Clone and install
+
 ```bash
-# Install dependencies
+git clone https://github.com/Kumar-Prasannajit/Job_Plz_Backend.git
+cd Job_Plz_Backend
 npm install
 
-# Set up environment variables
-cp .env.example .env
+# The scraper drives a real Chromium browser; npm install does not download it
+npx playwright install chromium
+```
 
-# Run pending migrations against the database
+### 2. Start Postgres (with pgvector) and Redis
+
+With Docker:
+
+```bash
+docker run -d --name jobplz-postgres -p 5432:5432 \
+  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=job_plz \
+  pgvector/pgvector:pg17
+
+docker run -d --name jobplz-redis -p 6379:6379 redis:7
+```
+
+These match the defaults in `.env.example`. If you use your own Postgres instead, create an empty `job_plz` database, install pgvector on that server, and adjust `DATABASE_URL`.
+
+### 3. Start Ollama and pull the embedding model
+
+```bash
+ollama serve                 # skip if the Ollama desktop app is already running
+ollama pull nomic-embed-text
+```
+
+### 4. Configure environment variables
+
+```bash
+cp .env.example .env         # Windows PowerShell: Copy-Item .env.example .env
+```
+
+Fill in the Clerk, Cloudinary and Gemini keys (see the table above). The app checks these at startup and exits with a list of anything missing: `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_WEBHOOK_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `GEMINI_API_KEY`, `GEMINI_MODEL`. `CLERK_WEBHOOK_SECRET` comes from step 6; any placeholder lets the server start until then.
+
+### 5. Create the database tables and start the server
+
+```bash
 npm run db:migrate
+npm run dev                  # http://localhost:5000
+```
 
-# Start development server (Terminal 1)
-npm run dev
+Check it's up: `curl http://localhost:5000/health`
 
-# Trigger a scrape, then start the worker to process it (Terminal 2 — see "Background Queue & Worker" below)
-npm run scraper
-npm run worker
+### 6. Connect the Clerk webhook (required for login to work)
+
+Users are written to the database **only** by the Clerk webhook (`user.created`, `user.updated`, `user.deleted` → `POST /api/v1/webhooks/clerk`). Without it, every logged-in request returns **404 "User not found"**, because the user signed in on Clerk but has no row here.
+
+Clerk can't reach `localhost`, so expose the server with a tunnel:
+
+```bash
+ngrok http 5000              # or: cloudflared tunnel --url http://localhost:5000
+```
+
+1. In the Clerk Dashboard, open **Webhooks** → **Add Endpoint**.
+2. Endpoint URL: `https://<your-tunnel-host>/api/v1/webhooks/clerk`
+3. Subscribe to `user.created`, `user.updated` and `user.deleted`.
+4. Copy the endpoint's **Signing Secret** (`whsec_...`) into `CLERK_WEBHOOK_SECRET` in `.env`, then restart `npm run dev`.
+
+Sign up a user in your frontend (or create one in the Clerk Dashboard); the server log shows `USER_CREATED event received` and the user appears in the `users` table. Free tunnel URLs change on restart, so update the endpoint URL when they do.
+
+### 7. (Optional) Make yourself an admin
+
+Every new user gets the `USER` role. The `/api/v1/admin/dashboard/*` routes need `ADMIN`, and there's no API for that yet, so set it in the database (for example with `npm run db:studio`, or with SQL):
+
+```sql
+UPDATE users SET role = 'ADMIN' WHERE email = 'you@example.com';
+```
+
+Note: routes that require `USER` reject admins with 403, so use a separate account for each role.
+
+### 8. Scrape jobs and process them
+
+In a second terminal (see "Background Queue & Worker" below for details):
+
+```bash
+npm run scraper              # scrape Google Jobs and queue the results
+npm run worker               # process the queue into jobs + embeddings; leave it running
 ```
 
 ## Database
@@ -114,16 +187,25 @@ Everything else in `src/scripts/` was one-off debugging/exploration (Google prov
 
 ## API Routes
 
-| Method | Endpoint                       | Description              |
-| ------ | ------------------------------ | ------------------------ |
-| GET    | `/health`                      | Health check             |
-| POST   | `/api/v1/webhooks/clerk`       | Clerk webhook (raw body) |
-| POST   | `/api/v1/resumes/upload`       | Upload & parse resume    |
-| GET    | `/api/v1/resumes/:id`          | Get resume by ID         |
-| PUT    | `/api/v1/resumes/:id`          | Update resume data       |
-| POST   | `/api/v1/resumes/:id/finalize` | Generate embeddings (synchronous) |
-| GET    | `/api/v1/scrapers/providers`   | List available scraper providers |
-| POST   | `/api/v1/scrapers/:providerId/run` | Run a scraper, saving `RawJob`s and enqueueing them for processing |
+**Access:** *Public* = no login. *USER* / *ADMIN* = Clerk session token (`Authorization: Bearer <token>`) for a user with that role; other roles get 403.
+
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| GET | `/health` | Public | Health check |
+| POST | `/api/v1/webhooks/clerk` | Svix signature | Clerk webhook (raw body); creates/updates/deletes users |
+| GET | `/api/v1/users/me` | Any logged-in user | Current user, including role |
+| POST | `/api/v1/resumes/upload` | USER | Upload & parse a resume (multipart, PDF in field `resume`) |
+| GET | `/api/v1/resumes/:resumeId` | USER | Get resume by ID |
+| PUT | `/api/v1/resumes/:resumeId` | USER | Update resume data |
+| POST | `/api/v1/resumes/:resumeId/finalize` | USER | Generate embeddings (synchronous) |
+| GET | `/api/v1/recommendations/:resumeId` | USER | Jobs matched to a resume |
+| GET | `/api/v1/dashboard` | USER | User dashboard |
+| GET | `/api/v1/jobs/:jobId` | Public | Get a job by ID |
+| GET | `/api/v1/admin/dashboard/overview` | ADMIN | Raw job counts by status, plus total jobs and embeddings |
+| GET | `/api/v1/admin/dashboard/sources` | ADMIN | Raw job counts by platform and status |
+| GET | `/api/v1/admin/dashboard/recent-jobs` | ADMIN | Recently added jobs |
+| GET | `/api/v1/scrapers/providers` | Public | List available scraper providers |
+| POST | `/api/v1/scrapers/:providerId/run` | Public ⚠️ | Run a scraper (`google`), saving `RawJob`s and enqueueing them for processing |
 
 ## Scripts
 
@@ -143,5 +225,7 @@ npm run db:studio        # Open Drizzle Studio
 ## Known Issues
 
 - The "weekly scheduler" is not implemented yet (scaffold sits unwired at `src/scheduler/weekly.scheduler.ts`, no npm script); scraping must be triggered manually via the API.
+- The resume enhancement module (`src/modules/enhancement/`) is an empty placeholder and isn't mounted in `app.ts` yet.
+- The scraper routes (`/api/v1/scrapers/*`) have no authentication, so anyone who can reach the server can start a scrape. Fine for local development; protect them before deploying.
 
 The app now validates required env vars at startup (`src/config/env.ts`) and exits with a clear message listing what's missing, instead of failing later with an obscure error the first time an unset value is used.
