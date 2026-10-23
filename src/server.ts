@@ -5,6 +5,7 @@ import { connectDB, env } from "./config/index.js";
 
 await connectDB();
 
-app.listen(env.PORT, () => {
+app.listen(env.PORT, (error) => {
+    if (error) throw error;
     console.log(`🚀 Server running on http://localhost:${env.PORT}`);
 });
