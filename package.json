@@ -18,8 +18,7 @@
     "test:browser": "tsx src/scripts/debug/test-browser.ts",
     "test:google": "tsx src/scripts/debug/test-google-provider.ts",
     "scraper": "tsx src/scripts/run-scraper.ts",
-    "worker": "tsx src/scripts/job-processing.worker.ts",
-    "cron": "tsx src/scripts/scraper.scheduler.ts"
+    "worker": "tsx src/scripts/job-processing.worker.ts"
   },
   "dependencies": {
     "@clerk/backend": "^3.13.2",

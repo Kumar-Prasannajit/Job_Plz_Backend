@@ -24,7 +24,7 @@ AI-powered job suggestion backend that parses resumes, generates embeddings, and
 - **Zod Validation** — End-to-end validation for all request payloads and resume schemas
 - **AI Embedding Pipeline** — Resume/Job chunking → Ollama (`nomic-embed-text`) embedding generation → pgvector storage (768 dimensions)
 - **Job Scraper** — Google Jobs provider with raw job ingestion and a BullMQ processing queue
-- **Weekly Scheduler** — ⚠️ Not yet implemented. `npm run cron` points to `src/scripts/scraper.scheduler.ts`, which no longer exists — running it throws `ERR_MODULE_NOT_FOUND`. The intended scaffold lives at `src/scheduler/weekly.scheduler.ts` (currently empty, not wired to the `cron` script). Job scraping today must be triggered manually via the scraper API route (see below).
+- **Weekly Scheduler** — ⚠️ Not yet implemented. The intended scaffold lives at `src/scheduler/weekly.scheduler.ts` (currently empty, with no npm script). Job scraping today must be triggered manually via the scraper API route (see below).
 
 ## Prerequisites
 
@@ -133,7 +133,6 @@ npm run build            # Compile TypeScript
 npm run start            # Run compiled server (dist/server.js)
 npm run scraper          # Manually run the Google Jobs scraper (see "Daily workflow" above)
 npm run worker           # Start the job-processing BullMQ worker (must be running for scraped jobs to be processed)
-npm run cron             # ⚠️ Currently broken — src/scripts/scraper.scheduler.ts no longer exists
 npm run typecheck        # Type-check without emit
 npm run db:generate      # Generate a migration from src/db/schema.ts changes
 npm run db:migrate       # Apply pending migrations to the database
@@ -143,6 +142,6 @@ npm run db:studio        # Open Drizzle Studio
 
 ## Known Issues
 
-- `npm run cron` points to `src/scripts/scraper.scheduler.ts`, which no longer exists — running it fails with `ERR_MODULE_NOT_FOUND`. The "weekly scheduler" is not implemented yet (scaffold sits unwired at `src/scheduler/weekly.scheduler.ts`); scraping must be triggered manually via the API.
+- The "weekly scheduler" is not implemented yet (scaffold sits unwired at `src/scheduler/weekly.scheduler.ts`, no npm script); scraping must be triggered manually via the API.
 
 The app now validates required env vars at startup (`src/config/env.ts`) and exits with a clear message listing what's missing, instead of failing later with an obscure error the first time an unset value is used.
